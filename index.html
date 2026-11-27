@@ -1151,7 +1151,7 @@ function evaluate(){const beat=60/P.bpm,os=onsets(),used=new Set(),match={};let 
   const extra=R.taps.length-used.size,n=os.length,score=Math.max(0,Math.round(((ok+0.5*(ea+la))/n-extra*0.05)*100));
   renderRhythm();$('#rRes').hidden=false;
   const parts=[`${ok} genau`];if(ea)parts.push(`${ea} zu früh`);if(la)parts.push(`${la} zu spät`);if(mi)parts.push(`${mi} verpasst`);if(extra)parts.push(`${extra} zusätzlich geklopft`);
-  const pass=score>=80;$('#rMsg').textContent=`${score>=90?'Klasse!':pass?'Gut gemacht!':'Noch nicht ganz – ab 80 % zählt die Übung. Hör nochmal genau hin.'} ${score} % · ${parts.join(', ')}`;
+  const pass=score>=65;$('#rMsg').textContent=`${score>=90?'Klasse!':pass?'Gut gemacht!':'Noch nicht ganz – ab 65 % zählt die Übung. Hör nochmal genau hin.'} ${score} % · ${parts.join(', ')}`;
   const total=R.bars*4*beat,W=600,x=t=>20+(t/total)*(W-40);let s=`<line x1="20" x2="${W-20}" y1="35" y2="35" stroke="var(--line)" stroke-width="2"/>`;
   for(let k=0;k<=R.bars*4;k++)s+=`<line x1="${x(k*beat)}" x2="${x(k*beat)}" y1="${k%4?29:22}" y2="${k%4?41:48}" stroke="var(--line)" stroke-width="${k%4?1:2}"/>`;
   os.forEach(e=>{s+=`<circle cx="${x(e.abs*beat)}" cy="35" r="${gap<0.4?4:7}" fill="none" stroke="var(--mut)" stroke-width="2"/>`});
