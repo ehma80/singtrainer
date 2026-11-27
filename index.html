@@ -117,6 +117,17 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .note{font-size:13px;color:var(--mut);margin-top:22px}
 /* Start */
+.home{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+@media(max-width:700px){.home{grid-template-columns:minmax(0,1fr)}}
+.tbtn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:0;border-radius:22px;padding:20px;min-height:150px;color:#fff;cursor:pointer;font:inherit;position:relative;overflow:hidden;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.tbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.tbtn b{font-size:24px;line-height:1.1}.tbtn span{font-size:15px;opacity:.92;max-width:24ch}.tbtn small{margin-top:auto;font-weight:800;font-size:14px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 10px}
+.tbtn svg{position:absolute;right:-6px;bottom:-8px;width:96px;height:96px;opacity:.22}
+.tb-m{background:#e5484d}.tb-h{background:#7a5af5}.tb-r{background:#119c9c}
+.sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+@media(max-width:520px){.sub{grid-template-columns:minmax(0,1fr)}}
+.sub .btn{justify-content:center}
+.back{margin:12px 0 -6px}
 .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:20px;align-items:center}
 @media(max-width:700px){.hero{grid-template-columns:minmax(0,1fr)}}
 .hero svg{width:100%;max-width:360px;height:auto;margin:0 auto;display:block}
@@ -162,21 +173,15 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 </head>
 <body>
 <header class="top">
-  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18.5a3 3 0 1 1-2-2.8V4l12-2v13.5a3 3 0 1 1-2-2.8V6.3l-8 1.4z" fill="var(--acc)"/></svg>Singtrainer</div>
+  <div class="brand"><button class="pill" id="hHome" hidden aria-label="Zum Menü"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="var(--ink)"/></svg>Menü</button><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18.5a3 3 0 1 1-2-2.8V4l12-2v13.5a3 3 0 1 1-2-2.8V6.3l-8 1.4z" fill="var(--acc)"/></svg>Singtrainer</div>
   <div class="stats" id="stats" hidden>
     <button class="pill" data-go="win" title="Flammen"><svg viewBox="0 0 24 24"><use href="#i-flame"/></svg><span id="hFl">0</span></button>
     <button class="pill" data-go="win" title="Tage in Folge"><svg viewBox="0 0 24 24"><use href="#i-streak"/></svg><span id="hSt">0</span></button>
     <button class="pill" id="hSound" title="Ton testen" aria-label="Ton testen"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="var(--ink)"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/></svg></button>
-    <button class="pill" id="hProf" data-go="voice"><span id="hName"></span>·<span class="vc" id="hVoice"></span></button>
+    <button class="pill" id="hProf"><span id="hName"></span>·<span class="vc" id="hVoice"></span></button>
   </div>
 </header>
-<nav class="tabs" id="tabs" role="tablist" hidden>
-  <button data-v="voice" role="tab">Stimmlage</button>
-  <button data-v="mel" role="tab">Melodie</button>
-  <button data-v="har" role="tab">Harmonie</button>
-  <button data-v="rhy" role="tab">Rhythmus</button>
-  <button data-v="win" role="tab">Erfolge</button>
-</nav>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <linearGradient id="gf" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e5484d"/><stop offset=".6" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffc53d"/></linearGradient>
@@ -210,10 +215,11 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
     </svg>
   </div>
   <div class="panel" id="profList" hidden>
-    <h2>Wer übt heute?</h2>
+    <div class="row" id="profNew" style="justify-content:space-between" hidden><h2 style="margin:0">Profile auf diesem Gerät</h2><button class="btn small ghost" id="fNew">+ Neues Profil</button></div>
+    <h2 id="whoT">Wer übt heute?</h2>
     <div class="plist" id="plist"></div>
   </div>
-  <div class="panel">
+  <div class="panel" id="formPanel">
     <h2 id="formTitle">Erzähl uns kurz etwas über dich</h2>
     <form class="form" id="pform">
       <label>Spitzname <input type="text" id="fName" maxlength="20" placeholder="z. B. Lena oder Singstar" autocomplete="off"></label>
@@ -222,14 +228,31 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
       <div style="display:grid;gap:6px;font-weight:800">Du bist …
         <div class="seg" id="fGender"><button type="button" data-g="w">ein Mädchen</button><button type="button" data-g="m">ein Junge</button><button type="button" data-g="x">keine Angabe</button></div></div>
       <p id="fErr" style="color:var(--acc);font-weight:800;margin:0" hidden></p>
-      <div class="row"><button class="btn primary" type="submit">Weiter zur Stimmlage</button><button class="btn ghost" type="button" id="fSound">Ton testen</button></div>
+      <div class="row"><button class="btn primary" type="submit" id="fSubmit">Weiter zur Stimmlage</button><button class="btn ghost" type="button" id="fCancel" hidden>Abbrechen</button><button class="btn ghost" type="button" id="fSound">Ton testen</button></div>
       <p style="color:var(--mut);font-size:14px;margin:0">Alter und Geschlecht helfen nur bei der Empfehlung für deine Stimmlage. Alles bleibt auf diesem Gerät.</p>
     </form>
   </div>
 </section>
 
+<!-- MENÜ -->
+<section id="v-home" class="view" hidden>
+  <h1 id="homeHi">Was möchtest du üben?</h1>
+  <p class="lead" id="homeSub"></p>
+  <div class="home">
+    <button class="tbtn tb-m" data-go="mel"><b>Melodie&shy;trainer</b><span>Töne und kleine Melodien nachsingen</span><small id="homeM"></small><svg viewBox="0 0 24 24"><path d="M9 18.5a3 3 0 1 1-2-2.8V4l12-2v13.5a3 3 0 1 1-2-2.8V6.3l-8 1.4z" fill="#fff"/></svg></button>
+    <button class="tbtn tb-h" data-go="har"><b>Harmonie&shy;trainer</b><span>Intervalle und Akkorde – einen Ton dazusingen</span><small id="homeH"></small><svg viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="8" cy="18" rx="4" ry="3"/><ellipse cx="8" cy="11" rx="4" ry="3"/><ellipse cx="16" cy="6" rx="4" ry="3"/></g></svg></button>
+    <button class="tbtn tb-r" data-go="rhy"><b>Rhythmus&shy;trainer</b><span>Rhythmen hören und nachklopfen</span><small id="homeR"></small><svg viewBox="0 0 24 24"><g fill="#fff"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/></g></svg></button>
+  </div>
+  <div class="sub">
+    <button class="btn ghost" data-go="win"><svg viewBox="0 0 24 24"><use href="#i-trophy"/></svg>Erfolge</button>
+    <button class="btn ghost" data-go="voice">Stimmlage ändern</button>
+    <button class="btn ghost" id="homeProf">Profil &amp; Einstellungen</button>
+  </div>
+</section>
+
 <!-- STIMMLAGE -->
 <section id="v-voice" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
   <h1>Wie klingt deine Stimme?</h1>
   <p class="lead" id="recoText">Schätz dich selbst ein. Tipp auf „Anhören“ und sing leise mit: Wenn alle Töne bequem gehen, passt die Stimmlage.</p>
   <div id="cards" class="cards"></div>
@@ -243,6 +266,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 
 <!-- MELODIE -->
 <section id="v-mel" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
   <div class="titlerow"><h1>Melodietrainer</h1><span class="voicetag vtag"></span></div>
   <div class="picker" id="mPick"></div>
   <div class="extitle" id="mTitle"></div>
@@ -259,6 +283,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 
 <!-- HARMONIE -->
 <section id="v-har" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
   <div class="titlerow"><h1>Harmonietrainer</h1><span class="voicetag vtag"></span></div>
   <p class="lead" style="margin-bottom:8px">Die schwarzen Noten werden vorgespielt (Klavier oder Stimme). Du singst die rote Note dazu – erst Intervalle, dann Akkorde.</p>
   <div class="picker" id="hPick"></div>
@@ -280,6 +305,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 
 <!-- RHYTHMUS -->
 <section id="v-rhy" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
   <h1>Rhythmustrainer</h1>
   <div class="picker" id="rPick"></div>
   <div class="extitle" id="rTitle"></div>
@@ -303,6 +329,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 
 <!-- ERFOLGE -->
 <section id="v-win" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
   <h1 id="wTitle">Deine Erfolge</h1>
   <div class="kpis" id="kpis"></div>
   <div class="panel"><h2>Nächste Flamme</h2><div class="dots" id="wDots"></div><p class="lead" id="wDotsT" style="margin:0"></p></div>
@@ -474,23 +501,35 @@ function stopLoop(){loopFn=null}
 
 /* ================= Navigation ================= */
 let VIEW='start';
-function show(v){stopSession();stopLoop();if(v!=='start'&&!P)v='start';if((v==='mel'||v==='har')&&!P.voice)v='voice';VIEW=v;
-  $$('.view').forEach(s=>s.hidden=s.id!=='v-'+v);$$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));
-  $('#tabs').hidden=$('#stats').hidden=v==='start';
+function show(v){stopSession();stopLoop();if(v!=='start'&&!P)v='start';if(v!=='start')editing=false;if((v==='mel'||v==='har')&&!P.voice)v='voice';VIEW=v;
+  $$('.view').forEach(s=>s.hidden=s.id!=='v-'+v);
+  $('#stats').hidden=!P||(v==='start'&&!editing);$('#hHome').hidden=true;
+  if(v==='home')renderHome();
   if(v==='start')renderStart();if(v==='voice')renderVoice();if(v==='mel'){renderPicker('m');renderMel();resetTuner('m')}if(v==='har'){renderPicker('h');renderHar();resetTuner('h')}
   if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();window.scrollTo(0,0)}
-$$('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.v));
 $$('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+$('#hHome').onclick=()=>show('home');$('#hProf').onclick=$('#homeProf').onclick=()=>{editing=true;show('start')};
+function renderHome(){$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
+  const wf=P.weeks[ymd(monday())]||0;$('#homeSub').textContent=`Diese Woche ${wf} von 3 Flammen · ${streak()} ${streak()===1?'Tag':'Tage'} in Folge · Stimmlage ${P.voice?VOICES[P.voice].name:'noch offen'}`;
+  [['m','#homeM'],['h','#homeH'],['r','#homeR']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 30 geschafft')}
 
 /* ================= Start / Profil ================= */
-let fGender='';
-function renderStart(){const has=DB.profiles.length>0;$('#profList').hidden=!has;$('#formTitle').textContent=has?'Oder ein neues Profil anlegen':'Erzähl uns kurz etwas über dich';
-  $('#plist').innerHTML=DB.profiles.map(p=>`<div class="prof"><div><b>${esc(p.name)}</b><br><span>${p.age>=18?'18+':esc(p.age)} Jahre · ${p.voice?VOICES[p.voice].name:'Stimmlage offen'} · ${p.flames} Flammen</span></div><button class="btn small primary" data-pid="${esc(p.id)}">Los geht's</button></div>`).join('');
-  $$('[data-pid]').forEach(b=>b.onclick=()=>{useProfile(b.dataset.pid);header();show(P.voice?'mel':'voice')})}
-$$('#fGender button').forEach(b=>b.onclick=()=>{fGender=b.dataset.g;$$('#fGender button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+let fGender='',editing=false;
+function setGender(g){fGender=g;$$('#fGender button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.g===g))}
+function renderStart(){const has=DB.profiles.length>0,ed=editing&&P;
+  $('#profList').hidden=!has||(!ed&&false);$('#profNew').hidden=!ed;$('#fCancel').hidden=!ed;
+  $('#formTitle').textContent=ed?'Dein Profil bearbeiten':has?'Oder ein neues Profil anlegen':'Erzähl uns kurz etwas über dich';
+  $('#fSubmit').textContent=ed?'Speichern':'Weiter zur Stimmlage';
+  if(ed){$('#fName').value=P.name;$('#fAge').value=String(P.age);setGender(P.gender)}else{$('#fName').value='';$('#fAge').value='';setGender('')}
+  $('#v-start .hero').hidden=!!ed;$('#whoT').hidden=!!ed;const fp=$('#formPanel'),pl=$('#profList');if(ed)pl.before(fp);else fp.before(pl);fp.parentNode.insertBefore(pl,ed?fp.nextSibling:fp);
+  $('#plist').innerHTML=DB.profiles.map(p=>`<div class="prof"><div><b>${esc(p.name)}</b><br><span>${p.age>=18?'18+':esc(p.age)} Jahre · ${p.voice?VOICES[p.voice].name:'Stimmlage offen'} · ${p.flames} Flammen</span></div><button class="btn small primary" data-pid="${esc(p.id)}">${editing&&P?(p.id===P.id?'Aktiv':'Wechseln'):"Los geht's"}</button></div>`).join('');
+  $$('[data-pid]').forEach(b=>b.onclick=()=>{useProfile(b.dataset.pid);header();show(P.voice?'home':'voice')})}
+$$('#fGender button').forEach(b=>b.onclick=()=>setGender(b.dataset.g));
+$('#fCancel').onclick=()=>show('home');$('#fNew').onclick=()=>{editing=false;renderStart();$('#fName').focus()};
 $('#pform').onsubmit=e=>{e.preventDefault();const age=+$('#fAge').value,err=$('#fErr');
   if(!age){err.textContent='Bitte wähle dein Alter.';err.hidden=false;return}if(!fGender){err.textContent='Bitte wähle aus, ob du ein Mädchen oder ein Junge bist (oder „keine Angabe“).';err.hidden=false;return}
-  err.hidden=true;const p=newProfile($('#fName').value.trim()||'Singstar',age,fGender);DB.profiles.push(p);useProfile(p.id);
+  err.hidden=true;if(editing&&P){P.name=$('#fName').value.trim()||P.name;P.age=age;P.gender=fGender;save();editing=false;header();toast('Profil gespeichert.');show('home');return}
+  const p=newProfile($('#fName').value.trim()||'Singstar',age,fGender);DB.profiles.push(p);useProfile(p.id);
   $('#fName').value='';$('#fAge').value='';fGender='';$$('#fGender button').forEach(x=>x.setAttribute('aria-pressed',false));header();show('voice')};
 
 /* ================= Stimmlage ================= */
@@ -501,7 +540,7 @@ function renderVoice(){const r=recommend(P);let why='';
   $('#recoText').textContent=`Hallo ${P.name}! Für dich empfehlen wir „${VOICES[r].name}“.${why} Tipp auf „Anhören“ und sing leise mit – wenn alle Töne bequem gehen, passt es.`;
   $('#cards').innerHTML=Object.entries(VOICES).map(([id,v])=>`<div class="card" data-id="${id}" style="--vc:${v.col}" aria-pressed="${P.voice===id}">${id===r?'<span class="reco">Empfohlen</span>':''}<div class="bar"></div><h3>${v.name}</h3><p>${v.desc}</p><p>Bereich: <span class="rng">${midiName(dnMidi(v.lo))} bis ${midiName(dnMidi(v.hi))}</span></p><div class="row"><button class="btn small ghost" data-hear="${id}">Anhören</button><button class="btn small primary" data-pick="${id}">Das bin ich</button></div></div>`).join('');
   $$('[data-hear]').forEach(b=>b.onclick=()=>{const v=VOICES[b.dataset.hear],t=ac().currentTime+0.05;let i=0;for(let d=v.lo;d<=v.hi;d++,i++)tone(dnMidi(d),t+i*0.32,0.3)});
-  $$('[data-pick]').forEach(b=>b.onclick=()=>{P.voice=b.dataset.pick;save();header();show('mel')})}
+  $$('[data-pick]').forEach(b=>b.onclick=()=>{P.voice=b.dataset.pick;save();header();show('home')})}
 $('#chkBtn').onclick=async()=>{if(!await startMic())return;const vals=[],end=performance.now()+4000;hist=[];$('#chkOut').textContent='';$('#chkBtn').disabled=true;
   startLoop(now=>{if(now-lastTick<40)return;lastTick=now;const m=readPitch();if(m!=null)vals.push(m);
     $('#chkLive').textContent=(m!=null?midiName(Math.round(m)):'…')+'  ·  noch '+Math.max(0,Math.ceil((end-now)/1000))+' s';
@@ -509,7 +548,7 @@ $('#chkBtn').onclick=async()=>{if(!await startMic())return;const vals=[],end=per
     if(vals.length<20){$('#chkOut').textContent='Ich habe dich nicht gut gehört. Versuch es nochmal etwas lauter und näher am Gerät.';return}
     vals.sort((a,b)=>a-b);const med=vals[vals.length>>1],id=med<53?'tief':med<63?'mittel':'hoch';
     $('#chkOut').innerHTML=`Dein Ton lag ungefähr bei <b>${midiName(Math.round(med))}</b>. Vorschlag: <b>${VOICES[id].name}</b>. <button class="btn small primary" id="chkTake">Übernehmen</button>`;
-    $('#chkTake').onclick=()=>{P.voice=id;save();header();show('mel')}})};
+    $('#chkTake').onclick=()=>{P.voice=id;save();header();show('home')}})};
 
 /* ================= Einstellungen (gemeinsam) ================= */
 const SSET=`<div>Klang der Vorgabe<div class="seg sSound"><button data-s="piano">Klavier</button><button data-s="voice">Stimme „doo“</button></div></div>
@@ -711,13 +750,13 @@ function renderWin(){const st=streak(),wk=ymd(monday()),wf=P.weeks[wk]||0,run=we
   $('#wProg').innerHTML=[['Melodie','m'],['Harmonie','h'],['Rhythmus','r']].map(([l,k3])=>{const n=Object.keys(P.done[k3]).length;return `<div>${l}: ${n} von 30<div class="meter"><i style="width:${n/30*100}%"></i></div></div>`}).join('');
   $('#wProf').textContent=`${P.name} · ${P.age>=18?'18+':P.age} Jahre · ${P.gender==='w'?'Mädchen':P.gender==='m'?'Junge':'keine Angabe'} · Stimmlage ${P.voice?VOICES[P.voice].name:'offen'}`;
   $('#wDel').textContent='Profil löschen';$('#wDel').dataset.sure=''}
-$('#wSwitch').onclick=()=>{DB.current=null;save();P=null;show('start')};
+$('#wSwitch').onclick=()=>{editing=true;show('start')};
 $('#wDel').onclick=e=>{const b=e.currentTarget;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='Wirklich löschen? Nochmal tippen';return}
   DB.profiles=DB.profiles.filter(p=>p.id!==P.id);DB.current=null;P=null;save();show('start')};
 
 /* ================= Start ================= */
 if(DB.current)useProfile(DB.current);
-if(P){header();show(P.voice?'mel':'voice')}else show('start');
+if(P){header();show(P.voice?'home':'voice')}else show('start');
 }
 </script>
 </body>
