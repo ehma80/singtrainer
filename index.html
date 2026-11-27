@@ -86,6 +86,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .tuner .row{grid-column:1/-1}
 .gauge{width:100%;max-width:330px;height:auto;margin:0 auto;display:block}
 .big{font-size:clamp(40px,9vw,56px);font-weight:800;line-height:1}
+.cents{font-size:20px;font-weight:800;color:var(--mut);margin-top:4px;font-variant-numeric:tabular-nums}.cents.ok{color:var(--ok)}.cents.off{color:var(--acc)}
 .hint{font-size:18px;font-weight:700;margin-top:6px;min-height:2.6em}
 .hint.ok{color:var(--ok)}.hint.lo,.hint.hi{color:var(--acc)}
 .holdbar{height:10px;border-radius:10px;background:var(--line);overflow:hidden;margin-top:8px}
@@ -458,11 +459,14 @@ function yin(b,sr){let r=0;for(let i=0;i<b.length;i++)r+=b[i]*b[i];if(Math.sqrt(
   const W=b.length>>1,tMin=Math.floor(sr/1000),tMax=Math.min(W-1,Math.floor(sr/70)),d=new Float32Array(tMax+1);
   for(let t=1;t<=tMax;t++){let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}d[t]=s}
   let run=0;d[0]=1;for(let t=1;t<=tMax;t++){run+=d[t];d[t]=run?d[t]*t/run:1}
-  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.15){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
+  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.12){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
   if(tau<0)return null;let bt=tau;if(tau>1&&tau<tMax){const a=d[tau-1],c=d[tau],e=d[tau+1],den=a+e-2*c;if(den)bt=tau+(a-e)/(2*den)}return sr/bt}
+/* Tonhöhe: Median gegen Ausreißer (z. B. Oktavsprünge), danach sanfte Glättung für eine ruhige, genaue Nadel */
+let sm=null;const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[s.length>>1]};
 function readPitch(){analyser.getFloatTimeDomainData(buf);const f=yin(buf,ctx.sampleRate),now=performance.now();
-  if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>5)hist.shift();lastSeen=now}else if(now-lastSeen>250)hist=[];
-  if(!hist.length)return null;const s=[...hist].sort((a,b)=>a-b);return s[s.length>>1]}
+  if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>7)hist.shift();lastSeen=now}else if(now-lastSeen>250)hist=[];
+  if(!hist.length){sm=null;return null}const md=med(hist);
+  if(sm==null||Math.abs(md-sm)>0.6)sm=md;else sm+=0.3*(md-sm);return sm}
 let loopFn=null,lastTick=0;
 function loop(t){if(!loopFn)return;loopFn(t);requestAnimationFrame(loop)}
 function startLoop(fn){loopFn=fn;lastTick=performance.now();requestAnimationFrame(loop)}
@@ -509,7 +513,7 @@ $('#chkBtn').onclick=async()=>{if(!await startMic())return;const vals=[],end=per
 
 /* ================= Einstellungen (gemeinsam) ================= */
 const SSET=`<div>Klang der Vorgabe<div class="seg sSound"><button data-s="piano">Klavier</button><button data-s="voice">Stimme „doo“</button></div></div>
-<label>Genauigkeit<select class="sTol"><option value="50">Leicht (±50 Cent)</option><option value="30">Mittel (±30 Cent)</option><option value="15">Streng (±15 Cent)</option></select></label>
+<label>Genauigkeit<select class="sTol"><option value="50">Leicht (±50 Cent)</option><option value="30">Mittel (±30 Cent)</option><option value="15">Streng (±15 Cent)</option><option value="10">Profi (±10 Cent)</option></select></label>
 <div>Tempo<div class="tv"><input type="range" class="bpm" min="40" max="160" step="5" aria-label="Tempo"><output class="bpmOut"></output></div></div>
 <label class="chk"><input type="checkbox" class="sOct">Oktave egal (jede Oktave zählt)</label><label class="chk"><input type="checkbox" class="sNames">Notennamen zeigen</label>`;
 $$('.sset').forEach(e=>e.innerHTML=SSET);
@@ -581,7 +585,7 @@ $('#hPlay').onclick=()=>{const c=ac(),e=curHar(),t0=c.currentTime+0.05;e.g.forEa
 $('#hSing').onclick=()=>startSession('har');
 
 /* ================= Sing-Sitzung (Melodie + Harmonie) ================= */
-const TUNER=p=>`<div class="panel tuner"><svg class="gauge" id="${p}Gauge" viewBox="0 0 240 150" aria-hidden="true"></svg><div><div class="big" id="${p}Note">–</div><div class="hint" id="${p}Hint"></div><div class="holdbar" aria-hidden="true"><i id="${p}Hold"></i></div></div>
+const TUNER=p=>`<div class="panel tuner"><svg class="gauge" id="${p}Gauge" viewBox="0 0 240 150" aria-hidden="true"></svg><div><div class="big" id="${p}Note">–</div><div class="cents" id="${p}Cents">&nbsp;</div><div class="hint" id="${p}Hint"></div><div class="holdbar" aria-hidden="true"><i id="${p}Hold"></i></div></div>
 <div class="row"><button id="${p}Tone" class="btn small ghost">Ton nochmal hören</button><button id="${p}Skip" class="btn small ghost" hidden>Überspringen</button><button id="${p}Stop" class="btn small ghost" hidden>Stopp</button></div></div>`;
 $('#mTuner').innerHTML=TUNER('m');$('#hTuner').innerHTML=TUNER('h');
 const SES={kind:null,targets:[],idx:0,st:[],hold:0,noteT:0,t0:0,pause:0,skips:0,need:450,drone:null};
@@ -596,7 +600,7 @@ async function startSession(kind){if(!P.voice)return show('voice');if(!await sta
   $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;kind==='mel'?renderMel():renderHar();startLoop(sesTick)}
 function stopSession(){if(!SES.kind)return;const p=pre(SES.kind);if(SES.drone){SES.drone.forEach(d=>d.stop());SES.drone=null}
   $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();k==='mel'?renderMel():renderHar()}
-function sesTick(now){if(now-lastTick<40)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
+function sesTick(now){if(now-lastTick<30)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
   if(now<SES.pause){gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Hör zu …';h.className='hint';return}
   const target=dnMidi(SES.targets[SES.idx]);let c=null;
   if(m!=null){c=(m-target)*100;if(P.oct)c=((c%1200)+1800)%1200-600}
@@ -614,13 +618,19 @@ function nextTarget(now){const p=pre(SES.kind),kind=SES.kind;SES.hold=0;SES.idx+
   SES.noteT=now;SES.pause=now+350;renderMel()}
 function renderMelDone(st){SES.kind='mel';SES.idx=-1;SES.st=st;renderMel();SES.kind=null}
 function renderHarDone(st){SES.kind='har';SES.st=st;renderHar();SES.kind=null}
-function gauge(p,m,c,tn){const T=P?P.tol:30,A=60,cx=120,cy=135,r=105,pt=a=>[cx+r*Math.sin(a*Math.PI/180),cy-r*Math.cos(a*Math.PI/180)];
-  const arc=(a1,a2)=>{const u=pt(a1),q=pt(a2);return `M${u[0].toFixed(1)},${u[1].toFixed(1)} A${r},${r} 0 0 1 ${q[0].toFixed(1)},${q[1].toFixed(1)}`};
-  const z=Math.min(A,T/50*A),ang=c==null?0:Math.max(-A,Math.min(A,c/50*A)),col=c==null?'var(--mut)':Math.abs(c)<=T?'var(--ok)':'var(--acc)';
-  let s=`<path d="${arc(-A,A)}" stroke="var(--line)" stroke-width="16" fill="none" stroke-linecap="round"/><path d="${arc(-z,z)}" stroke="var(--ok)" stroke-opacity=".35" stroke-width="16" fill="none"/>`;
-  [-50,-25,0,25,50].forEach(k=>{const a=k/50*A,u=pt(a),q=[cx+(r-16)*Math.sin(a*Math.PI/180),cy-(r-16)*Math.cos(a*Math.PI/180)];s+=`<line x1="${q[0]}" y1="${q[1]}" x2="${u[0]}" y2="${u[1]}" stroke="var(--mut)" stroke-width="${k?1.2:2}"/>`});
-  s+=`<text x="22" y="146" class="nl">zu tief</text><text x="218" y="146" class="nl" text-anchor="end">zu hoch</text><g transform="rotate(${ang.toFixed(1)} ${cx} ${cy})"><line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-r+4}" stroke="${col}" stroke-width="4" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="8" fill="${col}"/>`;
-  $('#'+p+'Gauge').innerHTML=s;$('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));
+function gaugeBuild(p){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50,A=60,cx=120,cy=135,r=105,rad=a=>a*Math.PI/180,pt=(a,rr=r)=>[cx+rr*Math.sin(rad(a)),cy-rr*Math.cos(rad(a))];
+  const arc=(a1,a2)=>{const u=pt(a1),q=pt(a2);return `M${u[0].toFixed(1)},${u[1].toFixed(1)} A${r},${r} 0 0 1 ${q[0].toFixed(1)},${q[1].toFixed(1)}`},z=Math.min(A,T/R*A);
+  let s=`<path d="${arc(-A,A)}" stroke="var(--line)" stroke-width="16" fill="none" stroke-linecap="round"/><path d="${arc(-z,z)}" stroke="var(--ok)" stroke-opacity=".4" stroke-width="16" fill="none"/>`;
+  for(let k=-R;k<=R;k+=5){const a=k/R*A,big=R===25?k%10===0:k%25===0,u=pt(a,r+9),q=pt(a,r-(big?20:13));s+=`<line x1="${q[0].toFixed(1)}" y1="${q[1].toFixed(1)}" x2="${u[0].toFixed(1)}" y2="${u[1].toFixed(1)}" stroke="var(--mut)" stroke-width="${k===0?2.4:big?1.6:0.9}"/>`}
+  (R===25?[-20,-10,0,10,20]:[-50,-25,0,25,50]).forEach(k=>{const q=pt(k/R*A,r-32);s+=`<text x="${q[0].toFixed(1)}" y="${(q[1]+4).toFixed(1)}" text-anchor="middle" class="cnt">${k>0?'+':''}${k}</text>`});
+  s+=`<text x="10" y="146" class="nl">zu tief</text><text x="230" y="146" class="nl" text-anchor="end">zu hoch</text><text x="${cx}" y="${cy-48}" text-anchor="middle" class="cnt">Cent</text>`;
+  s+=`<g id="${p}Needle" style="transform-origin:${cx}px ${cy}px;transition:transform .09s linear"><line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-r+2}" stroke-width="3.5" stroke-linecap="round"/><path d="M${cx-5},${cy} L${cx},${cy-r+2} L${cx+5},${cy}z" opacity=".25"/></g><circle id="${p}Hub" cx="${cx}" cy="${cy}" r="8"/>`;
+  el.innerHTML=s;el.dataset.k=T+'';}
+function gauge(p,m,c,tn){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50;if(el.dataset.k!==T+'')gaugeBuild(p);
+  const ang=c==null?0:Math.max(-62,Math.min(62,c/R*60)),col=c==null?'var(--mut)':Math.abs(c)<=T?'var(--ok)':'var(--acc)',nd=$('#'+p+'Needle');
+  nd.style.transform=`rotate(${ang.toFixed(1)}deg)`;nd.setAttribute('stroke',col);nd.setAttribute('fill',col);$('#'+p+'Hub').setAttribute('fill',col);
+  $('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));
+  const ce=$('#'+p+'Cents');if(c==null){ce.innerHTML='&nbsp;';ce.className='cents'}else{const v=Math.round(c);ce.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)+' Cent';ce.className='cents '+(Math.abs(c)<=T?'ok':'off')}
   if(!SES.kind||tn===undefined)return;const h=$('#'+p+'Hint');
   if(c==null){h.textContent=`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
   else if(c<-T){h.textContent=c<-100?'Viel zu tief – höher singen ↑':'Etwas höher singen ↑';h.className='hint lo'}
