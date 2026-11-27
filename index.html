@@ -139,6 +139,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 @media(max-width:520px){.sub{grid-template-columns:minmax(0,1fr)}}
 .sub .btn{justify-content:center}
 .back{margin:12px 0 -6px}
+.sp{display:inline-block;margin-left:8px;font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;vertical-align:3px;white-space:nowrap}.sp.sight{background:#fff1c7;color:#8a5a00}.sp.heard{background:var(--line);color:var(--mut)}
 .testbar{position:sticky;top:0;z-index:5;margin:12px 0 0;background:#1b1c20;color:#fff;border-radius:16px;padding:12px 14px;display:grid;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .tb-t{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.tb-t span{opacity:.75;font-weight:700;font-size:14px}
 .tdots{display:flex;gap:6px}.tdots i{flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.22)}.tdots i.on{background:#3ccf7d}.tdots i.cur{background:#ffc53d}
@@ -146,7 +147,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 .view.testing .picker,.view.testing #mNext,.view.testing #hNext,.view.testing #rNext,.view.testing #aNext,.view.testing #aPick{display:none}
 .tbanner{display:grid;gap:10px;border-color:var(--ink);margin-top:8px}.tbanner b{font-size:18px;display:block}.tbanner span{color:var(--mut);font-size:15px}
 .tres{display:grid;gap:10px;margin-top:12px}.tres .cust{grid-template-columns:minmax(0,1fr) auto;align-items:center}
-.tres .lvb{display:flex;gap:4px;margin-top:6px}.tres .lvb i{width:26px;height:8px;border-radius:6px;background:var(--line)}.tres .lvb i.on{background:var(--ok)}
+.tres .lvb{display:flex;gap:4px;margin-top:6px}.tres .lvb i{width:26px;height:8px;border-radius:6px;background:var(--line)}.tres .lvb i.on{background:var(--ok)}.tres .lvb i.half{background:color-mix(in srgb,var(--ok) 40%,var(--line))}
 .view.singing .picker,.view.singing>.lead,.view.singing .extitle span .lv,.view.singing .actions,.view.singing #aCount{display:none}
 .view.singing .sheet{scroll-margin-top:10px}
 @media(max-width:600px){.tuner{gap:6px;padding:12px}.gauge{max-width:250px}.big{font-size:40px}.hint{font-size:17px;min-height:2.4em;margin-top:2px}.tuner .row .btn{min-height:42px}
@@ -306,7 +307,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
   <div id="testIntro">
     <h1>Einstufungstest</h1>
     <p class="lead">Finde heraus, wo du startest: 4 Teile – <b>Melodie, Harmonie, Rhythmus und Auswendig</b> – mit je bis zu 5 Aufgaben, die immer schwerer werden. Klappt eine Aufgabe nicht (2 Versuche), geht es mit dem nächsten Teil weiter. Dauer etwa 5–10 Minuten. Am Ende bekommst du einen Vorschlag, in welcher Stufe du bei jedem Trainer beginnst.</p>
-    <div class="panel"><b>So geht's:</b> Bei jeder Aufgabe ganz normal „Vorspielen“ und dann singen bzw. klopfen. Oben siehst du, wo du im Test bist. Du brauchst das Mikrofon – mit Kopfhörern klappt es am besten.</div>
+    <div class="panel"><b>So geht's:</b> Am meisten zählt, wenn du die Noten <b>vom Blatt</b> singst bzw. klopfst – also ohne vorher „Vorspielen“ zu drücken. Mit Vorspielen geht es auch, zählt aber nur halb. Oben siehst du, wo du im Test bist. Du brauchst das Mikrofon – mit Kopfhörern klappt es am besten.</div>
     <div class="actions"><button class="btn primary" id="testGo">Test starten</button><button class="btn ghost" data-go="home">Später</button></div>
   </div>
   <div id="testRes" hidden></div>
@@ -574,12 +575,18 @@ const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+Stri
 function monday(d=new Date()){const m=new Date(d.getFullYear(),d.getMonth(),d.getDate());m.setDate(m.getDate()-((m.getDay()+6)%7));return m}
 function streak(){const d=new Date();if(!P.days[ymd(d)])d.setDate(d.getDate()-1);let n=0;while(P.days[ymd(d)]){n++;d.setDate(d.getDate()-1)}return n}
 function weekRun(){const d=monday();if((P.weeks[ymd(d)]||0)<3)d.setDate(d.getDate()-7);let n=0;while((P.weeks[ymd(d)]||0)>=3){n++;d.setDate(d.getDate()-7)}return n}
-function award(kind,idx){P.done[kind][idx]=(P.done[kind][idx]||0)+1;P.solved++;const dk=ymd(new Date());P.days[dk]=(P.days[dk]||0)+1;
-  const ev=[];if(P.solved%5===0){P.flames++;const wk=ymd(monday());P.weeks[wk]=(P.weeks[wk]||0)+1;ev.push('flame');
+/* Vom Blatt (ohne Vorspielen gehört) zählt doppelt */
+const HEARD={m:false,h:false,r:false,a:false};
+function setHeard(k){HEARD[k]=true;const e=$('#'+k+'Sight');if(e){e.className='sp heard';e.textContent='Gehört – zählt 1 Punkt'}}
+function sightPill(k){return HEARD[k]?`<span class="sp heard" id="${k}Sight">Gehört – zählt 1 Punkt</span>`:`<span class="sp sight" id="${k}Sight">★ Vom Blatt – zählt doppelt</span>`}
+function award(kind,idx){const hk=kind==='c'?'a':kind,sight=!HEARD[hk],pts=sight?2:1,before=Math.floor(P.solved/5);
+  P.done[kind][idx]=(P.done[kind][idx]||0)+1;if(sight){P.sight=P.sight||{};(P.sight[kind]=P.sight[kind]||{})[idx]=1}
+  P.solved+=pts;const dk=ymd(new Date());P.days[dk]=(P.days[dk]||0)+1;
+  const ev=[],gained=Math.floor(P.solved/5)-before;for(let g=0;g<gained;g++){P.flames++;const wk=ymd(monday());P.weeks[wk]=(P.weeks[wk]||0)+1;ev.push('flame');
     if(P.weeks[wk]===3){ev.push('trophy');let n=0;const d=monday();while((P.weeks[ymd(d)]||0)>=3){n++;d.setDate(d.getDate()-7)}if(n%4===0){P.crowns++;ev.push('crown')}}}
-  P.best=Math.max(P.best,streak());save();header();if(KIND[kind])renderPicker(kind);testHook(kind,idx,true);
-  if(ev.length)celebrate(ev);else toast(`Richtig! Noch ${5-P.solved%5} ${5-P.solved%5===1?'Übung':'Übungen'} bis zur nächsten Flamme.`);}
-const CEL={flame:['i-flame','Du hast eine Flamme!','5 Übungen geschafft – stark!'],
+  P.best=Math.max(P.best,streak());save();header();if(KIND[kind])renderPicker(kind);testHook(kind,idx,true,sight);
+  const rest=5-P.solved%5;if(ev.length)celebrate(ev);else toast(`${sight?'Vom Blatt gesungen – 2 Punkte! ':'Richtig! +1 Punkt. '}Noch ${rest} ${rest===1?'Punkt':'Punkte'} bis zur nächsten Flamme.`);}
+const CEL={flame:['i-flame','Du hast eine Flamme!','5 Punkte geschafft – stark!'],
   trophy:['i-trophy','Wochen-Pokal!','3 Flammen in dieser Woche. Du bist richtig fleißig!'],
   crown:['i-crown','Die Krone gehört dir!','4 Wochen hintereinander den Wochen-Pokal geholt. Wow!']};
 let celQ=[];
@@ -769,15 +776,15 @@ function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),{lv,start,total}=
   const chips=lv.map(([l,cnt],L)=>{const open=isOpen(k,start[L]);let d=0;for(let j=0;j<cnt;j++)if(P.done[k][start[L]+j])d++;
     return `<button class="lvchip${L===PL?' on':''}" data-l="${L}"${open?'':' disabled'} aria-pressed="${L===PL}"><span>${open?'':LOCK} ${l}</span><i><b style="width:${d/cnt*100}%"></b></i><small>${d}/${cnt}</small></button>`}).join('');
   const tiles=Array.from({length:lv[PL][1]},(_,j)=>{const i=start[PL]+j,open=isOpen(k,i),dn=P.done[k][i];
-    return `<button class="tile${dn?' done':''}${i===fr&&!dn?' next':''}" data-i="${i}"${open?'':' disabled'} aria-current="${i===cur}" aria-label="Übung ${i+1}${dn?', geschafft':open?'':', gesperrt'}">${dn?'✓':open?i+1:LOCK}</button>`}).join('');
+    return `<button class="tile${dn?' done':''}${i===fr&&!dn?' next':''}" data-i="${i}"${open?'':' disabled'} aria-current="${i===cur}" aria-label="Übung ${i+1}${dn?', geschafft':open?'':', gesperrt'}">${dn?((P.sight&&P.sight[k]&&P.sight[k][i])?'★':'✓'):open?i+1:LOCK}</button>`}).join('');
   el.innerHTML=`<div class="pall"><div class="pall-t"><b>${doneN} von ${total} geschafft</b><span>${all?'Alles geschafft – stark!':`Als Nächstes: Übung ${fr+1}`}</span></div><div class="meter big"><i style="width:${doneN/total*100}%"></i></div></div>
     <div class="lvchips">${chips}</div><div class="tiles">${tiles}</div>`;
   el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>selectEx(k,+b.dataset.i));
   el.querySelectorAll('.lvchip').forEach(b=>b.onclick=()=>{pickL[k]=+b.dataset.l;renderPicker(k)});
-  const lc=lv.length>5?[1,1,2,3,4,5][curL]:curL+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[curL][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`;
+  const lc=lv.length>5?[1,1,2,3,4,5][curL]:curL+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[curL][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong>${sightPill(k)}</span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`;
   const nb=$('#'+k+'Next');if(nb){const last=cur>=total-1,canGo=!last&&isOpen(k,cur+1);nb.disabled=!canGo;nb.classList.toggle('go',canGo&&!!P.done[k][cur]);nb.classList.toggle('ghost',!(canGo&&P.done[k][cur]));
     nb.textContent=last?'Letzte Übung':canGo?'Nächste Übung →':'Erst diese Übung schaffen'}}
-function selectEx(k,i){if(!isOpen(k,i))return;stopSession();P.cur[k]=i;pickL[k]=levelOf(k,i);save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();if(k==='a'){memListens=0;SES.lastMem=null;renderMem()}
+function selectEx(k,i){if(!isOpen(k,i))return;stopSession();HEARD[k]=false;P.cur[k]=i;pickL[k]=levelOf(k,i);save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();if(k==='a'){memListens=0;SES.lastMem=null;renderMem()}
   $('#'+k+'Msg')&&($('#'+k+'Msg').textContent='');resetTuner(k)}
 $('#aNext').onclick=()=>selectEx('a',P.cur.a+1);$('#mNext').onclick=()=>selectEx('m',P.cur.m+1);$('#hNext').onclick=()=>selectEx('h',P.cur.h+1);$('#rNext').onclick=()=>selectEx('r',P.cur.r+1);
 
@@ -809,7 +816,7 @@ function renderMel(){if(!P||!P.voice||VIEW!=='mel')return;const v=V(),notes=curM
   notes.forEach((n,i)=>{let cls=act?SES.st[i]||'':'';if((act&&SES.idx===i)||mHL===i)cls='cur';const x=100+i*gap;
     s+=noteSVG(x,n.dn,bottom,yB,n.d,cls);if(P.names)s+=`<text class="nl" x="${x}" y="${H-6}" text-anchor="middle">${midiName(dnMidi(n.dn))}</text>`});
   fitSvg($('#mStaff'),W,H);$('#mStaff').innerHTML=s}
-$('#mPlay').onclick=()=>{const c=ac(),beat=60/P.bpm,t0=c.currentTime+0.1,notes=curMel();let t=0;
+$('#mPlay').onclick=()=>{setHeard('m');const c=ac(),beat=60/P.bpm,t0=c.currentTime+0.1,notes=curMel();let t=0;
   notes.forEach((n,i)=>{tone(dnMidi(n.dn),t0+t*beat,n.d*beat*0.92);setTimeout(()=>{mHL=i;renderMel()},(0.1+t*beat)*1000);t+=n.d});
   setTimeout(()=>{mHL=-1;renderMel()},(0.1+t*beat)*1000);if(SES.kind==='mel')SES.pause=performance.now()+(0.4+t*beat)*1000};
 $('#mSing').onclick=()=>startSession('mel');
@@ -928,8 +935,8 @@ function renderMem(){if(!P||!P.voice||VIEW!=='mem')return;const v=V(),mm=memMel(
   $('#aPlay').disabled=mode==='see'||act;$('#aSingVis').disabled=act||memCD>0;
   $('#aCount').textContent=(mode==='see'?'Nur ansehen: Lies die Noten und stell dir die Melodie vor. ':memListens?`Angehört: ${memListens}× · `:'')+`${cnt} ${cnt===1?'Ton':'Töne'} · ${bars} ${bars===1?'Takt':'Takte'}`;
   const cust=!!MEMSRC;$('#aPick').hidden=cust;$('#aNext').hidden=cust;$('#v-mem .back').textContent=cust?'← Eigene Melodien':'← Menü';
-  if(cust){const d=P.done.c[MEMSRC];$('#aTitle').innerHTML=`<span><span class="lv lv2">Eigene Melodie</span><strong>${esc(mm.title)}</strong></span>${d?`<span style="color:var(--ok);font-weight:800">✓ ${d}× geschafft</span>`:''}`}}
-$('#aPlay').onclick=()=>{SES.lastMem=null;memListens++;playNotes(curMem(),i=>{aHL=i;renderMem()},60/P.bpm);renderMem()};
+  if(cust){const d=P.done.c[MEMSRC];$('#aTitle').innerHTML=`<span><span class="lv lv2">Eigene Melodie</span><strong>${esc(mm.title)}</strong>${sightPill('a')}</span>${d?`<span style="color:var(--ok);font-weight:800">✓ ${d}× geschafft</span>`:''}`}}
+$('#aPlay').onclick=()=>{setHeard('a');SES.lastMem=null;memListens++;playNotes(curMem(),i=>{aHL=i;renderMem()},60/P.bpm);renderMem()};
 $('#aSing').onclick=async()=>{if(!P.voice)return show('voice');if(!await startMic())return;stopSession();SES.lastMem=null;memCD=3;focusSing('mem',true);renderMem();$('#aSing').disabled=true;$('#aMsg').textContent='';
   const tick=()=>{if(VIEW!=='mem'){memCD=0;$('#aSing').disabled=false;focusSing('mem',false);return}memCD--;if(memCD>0){renderMem();setTimeout(tick,1000)}else{renderMem();startSession('mem')}};setTimeout(tick,1000)};
 $('#aSingVis').onclick=()=>{SES.lastMem=null;$('#aMsg').textContent='';startSession('mem',{vis:true})};
@@ -946,7 +953,7 @@ function renderHar(){if(!P||!P.voice||VIEW!=='har')return;const v=V(),e=curHar()
   s+=`<text x="178" y="${yB-18}" text-anchor="middle" style="font:800 26px Nunito,sans-serif;fill:var(--mut)">+</text>`+noteSVG(236,e.t,bottom,yB,4,st==='hit'?'hit':'tgt');
   s+=`<text class="nl" x="128" y="${H-6}" text-anchor="middle">${P.names?sorted.map(d=>midiName(dnMidi(d))).join(' '):'Klavier'}</text><text class="nl" x="236" y="${H-6}" text-anchor="middle" style="fill:var(--acc)">${P.names?'du: '+midiName(dnMidi(e.t)):'du singst'}</text>`;
   fitSvg($('#hStaff'),W,H);$('#hStaff').innerHTML=s}
-$('#hPlay').onclick=()=>{const c=ac(),e=curHar(),t0=c.currentTime+0.05;e.g.forEach(dn=>tone(dnMidi(dn),t0,1.6,0.26));let end=2;
+$('#hPlay').onclick=()=>{if(P.hMode==='hear')setHeard('h');const c=ac(),e=curHar(),t0=c.currentTime+0.05;e.g.forEach(dn=>tone(dnMidi(dn),t0,1.6,0.26));let end=2;
   if(P.hMode==='hear'){tone(dnMidi(e.t),t0+2,1.4);setTimeout(()=>{hHL=true;renderHar()},2050);setTimeout(()=>{hHL=false;renderHar()},3500);end=3.6}
   if(SES.kind==='har')SES.pause=performance.now()+end*1000+300};
 $('#hSing').onclick=()=>startSession('har');
@@ -1010,7 +1017,7 @@ function gauge(p,m,c,tn){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50;if
 ['m','h','a'].forEach(p=>{const kind={m:'mel',h:'har',a:'mem'}[p];
   $('#'+p+'Stop').onclick=()=>{stopSession();const h=$('#'+p+'Hint');h.textContent='Gestoppt.';h.className='hint'};
   $('#'+p+'Skip').onclick=()=>{SES.st[SES.idx]='skip';SES.skips++;nextTarget(performance.now())};
-  $('#'+p+'Tone').onclick=()=>{if(!P.voice)return;const mi=kind==='mem'?curMem().find(n=>!n.rest).m:SES.kind===kind?SES.targets[SES.idx]:(kind==='mel'?dnMidi(curMel()[0].dn):dnMidi(curHar().t));
+  $('#'+p+'Tone').onclick=()=>{if(!P.voice)return;setHeard(p);const mi=kind==='mem'?curMem().find(n=>!n.rest).m:SES.kind===kind?SES.targets[SES.idx]:(kind==='mel'?dnMidi(curMel()[0].dn):dnMidi(curHar().t));
     tone(mi,ac().currentTime+0.05,1);if(SES.kind)SES.pause=performance.now()+1600}});
 
 /* ================= Einstufungstest ================= */
@@ -1018,26 +1025,27 @@ const TPARTS=[['m','Melodie','mel'],['h','Harmonie','har'],['r','Rhythmus','rhy'
 const TITEMS={m:[2,12,22,32,42],h:[2,12,22,32,42],r:[2,12,22,32,42],a:[2,8,16,24,32]};
 let TEST=null;
 function testStart(){if(!P.voice){P.voice='mittel';save();header()}TEST={pi:0,ii:0,k:null,idx:null,tries:0,res:{},prevCur:{...P.cur}};testGo()}
-function testGo(){const[k,,view]=TPARTS[TEST.pi];TEST.k=k;TEST.idx=TITEMS[k][TEST.ii];TEST.tries=0;MEMSRC=null;P.cur[k]=TEST.idx;pickL[k]=levelOf(k,TEST.idx);
+function testGo(){const[k,,view]=TPARTS[TEST.pi];HEARD[k]=false;TEST.k=k;TEST.idx=TITEMS[k][TEST.ii];TEST.tries=0;MEMSRC=null;P.cur[k]=TEST.idx;pickL[k]=levelOf(k,TEST.idx);
   TEST.nav=true;show(view);TEST.nav=false;if(k==='a'){memListens=0;SES.lastMem=null}['m','h','a'].forEach(x=>{const e=$('#'+x+'Msg');if(e)e.textContent=''})}
 function testBar(){$$('.testbar').forEach(b=>b.hidden=true);$$('.view').forEach(v=>v.classList.remove('testing'));if(!TEST)return;
   const[k,name,view]=TPARTS[TEST.pi],v=$('#v-'+view),tb=v.querySelector('.testbar');v.classList.add('testing');tb.hidden=false;
   tb.innerHTML=`<div class="tb-t"><b>Einstufungstest · ${name}</b><span>Teil ${TEST.pi+1} von 4 · Aufgabe ${TEST.ii+1} von 5${TEST.tries?' · 2. Versuch':''}</span></div>
-    <div class="tdots">${[0,1,2,3,4].map(i=>`<i class="${i<TEST.ii?'on':i===TEST.ii?'cur':''}"></i>`).join('')}</div>${k==='a'?'<span style="font-size:14px;opacity:.85">Für den Test zählt „Auswendig singen“.</span>':''}
+    <div class="tdots">${[0,1,2,3,4].map(i=>`<i class="${i<TEST.ii?'on':i===TEST.ii?'cur':''}"></i>`).join('')}</div><span style="font-size:14px;opacity:.85">${k==='a'?'Für den Test zählt „Auswendig singen“. ':''}★ Tipp: Ohne Vorspielen – nur vom Blatt – zählt die Aufgabe doppelt.</span>
     <div class="row"><button class="btn small" data-t="fail">Schaffe ich nicht – weiter</button><button class="btn small" data-t="stop">Test abbrechen</button></div>`;
   tb.querySelector('[data-t=fail]').onclick=()=>testResult(false,true);tb.querySelector('[data-t=stop]').onclick=()=>{testAbort(false);show('home')}}
 function testAbort(silent){if(!TEST)return;Object.assign(P.cur,TEST.prevCur);TEST=null;save();testBar();if(!silent)toast('Test abgebrochen – du kannst ihn jederzeit im Menü neu starten.')}
-function testHook(k,idx,ok){if(!TEST||TEST.k!==k||TEST.idx!==idx||TEST.wait)return;if(ok)return testResult(true);TEST.tries++;
+function testHook(k,idx,ok,sight){if(!TEST||TEST.k!==k||TEST.idx!==idx||TEST.wait)return;if(ok)return testResult(true,false,sight);TEST.tries++;
   if(TEST.tries>=2)testResult(false);else{testBar();toast('Noch ein Versuch – du schaffst das!')}}
-function testResult(ok,now){const k=TEST.k;(TEST.res[k]=TEST.res[k]||[]).push(ok);TEST.wait=true;
+function testResult(ok,now,sight){const k=TEST.k;(TEST.res[k]=TEST.res[k]||[]).push(ok?(sight?2:1):0);TEST.wait=true;
   const next=()=>{if(!TEST)return;TEST.wait=false;stopSession();if(ok&&TEST.ii<4){TEST.ii++;testGo()}else if(TEST.pi<3){TEST.pi++;TEST.ii=0;testGo()}else testDone()};
-  if(now)next();else{toast(ok?'Richtig! Weiter zur nächsten Testaufgabe …':'Okay – weiter mit dem nächsten Teil.');setTimeout(next,1800)}}
+  if(now)next();else{toast(ok?(sight?'Vom Blatt geschafft – stark! Weiter …':'Richtig! Weiter zur nächsten Testaufgabe …'):'Okay – weiter mit dem nächsten Teil.');setTimeout(next,1800)}}
 function testDone(){const res=TEST.res,prev=TEST.prevCur;TEST=null;testBar();const sug={};
-  TPARTS.forEach(([k])=>{const passes=(res[k]||[]).filter(Boolean).length;sug[k]=Math.min(passes,4)});
+  /* Wertung: vom Blatt = 1 Stufe, mit Vorspielen = ½ Stufe */
+  TPARTS.forEach(([k])=>{const r=res[k]||[],score=r.reduce((a,x)=>a+(x===2?1:x===1?0.5:0),0);sug[k]=Math.min(4,Math.floor(score))});
   P.testDone=true;Object.assign(P.cur,prev);save();show('test');$('#testIntro').hidden=true;const box=$('#testRes');box.hidden=false;
-  box.innerHTML=`<h1>Dein Ergebnis</h1><p class="lead">So weit bist du gekommen. Mit einem Haken startest du direkt in der vorgeschlagenen Stufe – die Stufen davor bleiben frei, falls du sie trotzdem üben willst.</p>
-    <div class="tres">${TPARTS.map(([k,name])=>{const{lv}=lvInfo(k),L=sug[k],passes=(res[k]||[]).filter(Boolean).length;
-      return `<label class="cust"><div><b>${name}</b><div class="meta">${passes} von 5 Aufgaben geschafft · Vorschlag: Start bei <b>${lv[L][0]}</b></div><div class="lvb">${[0,1,2,3,4].map(i=>`<i class="${i<passes?'on':''}"></i>`).join('')}</div></div><input type="checkbox" class="tchk" data-k="${k}" data-l="${L}" ${L>0?'checked':''} style="width:26px;height:26px;accent-color:var(--ok)"></label>`}).join('')}</div>
+  box.innerHTML=`<h1>Dein Ergebnis</h1><p class="lead">So weit bist du gekommen. Vom Blatt gesungene Aufgaben (ohne Vorspielen) zählen voll, vorgespielte nur halb. Mit einem Haken startest du direkt in der vorgeschlagenen Stufe – die Stufen davor bleiben frei, falls du sie trotzdem üben willst.</p>
+    <div class="tres">${TPARTS.map(([k,name])=>{const{lv}=lvInfo(k),L=sug[k],r=res[k]||[],passes=r.filter(Boolean).length,sightN=r.filter(x=>x===2).length;
+      return `<label class="cust"><div><b>${name}</b><div class="meta">${passes} von 5 geschafft${passes?`, davon ${sightN} vom Blatt`:''} · Vorschlag: Start bei <b>${lv[L][0]}</b></div><div class="lvb">${[0,1,2,3,4].map(i=>`<i class="${r[i]===2?'on':r[i]===1?'half':''}"></i>`).join('')}</div></div><input type="checkbox" class="tchk" data-k="${k}" data-l="${L}" ${L>0?'checked':''} style="width:26px;height:26px;accent-color:var(--ok)"></label>`}).join('')}</div>
     <div class="actions"><button class="btn primary" id="testApply">Vorschläge übernehmen</button><button class="btn ghost" id="testNo">Nein danke, ich fange vorne an</button></div>`;
   $('#testApply').onclick=()=>{P.start=P.start||{};let n=0;$$('.tchk').forEach(c=>{const k=c.dataset.k,L=+c.dataset.l,{start}=lvInfo(k);if(c.checked&&L>0){P.start[k]=start[L];P.cur[k]=start[L];pickL[k]=L;n++}});save();
     toast(n?'Übernommen – deine Start-Stufen sind freigeschaltet.':'Alles klar – du startest überall vorne.');show('home')};
@@ -1054,7 +1062,7 @@ function renderCust(){const L=$('#cList');
       <input type="text" readonly hidden></div>`}).join('');
   L.querySelectorAll('.cust').forEach(card=>{const id=card.dataset.id,c=DB.custom.find(x=>x.id===id);
     card.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{const a=b.dataset.act;
-      if(a==='play'){if(!P.voice)return show('voice');MEMSRC=id;memListens=0;SES.lastMem=null;show('mem')}
+      if(a==='play'){if(!P.voice)return show('voice');HEARD.a=false;MEMSRC=id;memListens=0;SES.lastMem=null;show('mem')}
       if(a==='edit')openEditor(c);
       if(a==='share'){if(!canShareLinks())return toast('Teilen geht, wenn die App über ihre Internetadresse geöffnet ist.');shareLink(c.t,shareUrl([c]),card.querySelector('input'))}
       if(a==='del'){if(b.dataset.sure){DB.custom=DB.custom.filter(x=>x.id!==id);save();renderCust();toast('Melodie gelöscht.')}else{b.dataset.sure='1';b.textContent='Wirklich löschen?'}}})});
@@ -1137,7 +1145,7 @@ function evaluate(){const beat=60/P.bpm,os=onsets(),used=new Set(),match={};let 
   os.forEach(e=>{s+=`<circle cx="${x(e.abs*beat)}" cy="35" r="${gap<0.4?4:7}" fill="none" stroke="var(--mut)" stroke-width="2"/>`});
   R.taps.forEach((t,i)=>{if(t<-0.3||t>total+0.3)return;const col=!used.has(i)?'var(--acc)':match[i]==='ok'?'var(--ok)':'var(--warn)';s+=`<line x1="${x(t)}" x2="${x(t)}" y1="18" y2="52" stroke="${col}" stroke-width="3" stroke-linecap="round"/>`});
   $('#tline').innerHTML=s;if(pass)award('r',P.cur.r);else testHook('r',P.cur.r,false)}
-$('#rPlay').onclick=()=>runRhythm(false);$('#rGo').onclick=()=>runRhythm(true);
+$('#rPlay').onclick=()=>{setHeard('r');runRhythm(false)};$('#rGo').onclick=()=>runRhythm(true);
 $('#pad').addEventListener('pointerdown',e=>{e.preventDefault();tap()});
 document.addEventListener('keydown',e=>{if(VIEW!=='rhy'||e.target.tagName==='INPUT')return;if(e.code==='Space'&&!e.repeat){e.preventDefault();tap()}});
 
@@ -1147,7 +1155,7 @@ function renderWin(){const st=streak(),wk=ymd(monday()),wf=P.weeks[wk]||0,run=we
   const K=[['i-flame',P.flames,'Flammen'],['i-streak',st,st===1?'Tag in Folge':'Tage in Folge'],['i-trophy',trophies,'Wochen-Pokale'],['i-crown',P.crowns,'Kronen']];
   $('#kpis').innerHTML=K.map(([i,n,l])=>`<div class="kpi"><svg viewBox="0 0 24 24"><use href="#${i}"/></svg><div><b>${n}</b><span>${l}</span></div></div>`).join('');
   const r=P.solved%5;$('#wDots').innerHTML=Array.from({length:5},(_,i)=>`<i class="${i<r?'on':''}"></i>`).join('');
-  $('#wDotsT').textContent=`${r} von 5 Übungen geschafft – noch ${5-r} bis zur nächsten Flamme. Insgesamt ${P.solved} Übungen gelöst.`;
+  $('#wDotsT').textContent=`${r} von 5 Punkten – noch ${5-r} bis zur nächsten Flamme. Jede geschaffte Übung bringt 1 Punkt, vom Blatt gesungen (ohne Vorspielen) sogar 2. Insgesamt ${P.solved} Punkte.`;
   $('#wWeek').innerHTML=[0,1,2].map(i=>`<div class="slot${i<wf?' on':''}">${i<wf?'<svg viewBox="0 0 24 24"><use href="#i-flame"/></svg>':''}</div>`).join('')+`<b style="font-size:22px;margin:0 4px">→</b><div class="slot gold${wf>=3?' on':''}"><svg viewBox="0 0 24 24" style="opacity:${wf>=3?1:.3}"><use href="#i-trophy"/></svg></div>`;
   $('#wWeekT').textContent=wf>=3?'Wochen-Pokal geholt! Jede weitere Flamme zählt trotzdem.':`${wf} von 3 Flammen diese Woche. Noch ${3-wf} bis zum Pokal (die Woche geht von Montag bis Sonntag).`;
   const k=run%4===0&&run>0?4:run%4;
