@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singtrainer</title>
+<style>
+/* VOICE: freundlich und klar, für Schülerinnen und Schüler ab 10
+   IDEA: ein Notenheft mit eingebautem Stimmgerät und Sammelheft für Flammen
+   PICTURE: großes Notensystem, darunter Stimmgerät-Nadel bzw. Klopf-Pad
+   COLOUR/TYPE: Papierweiß, Tinte, Koralle als Akzent, Grün = getroffen, Flammen-Orange; Nunito
+   LAYOUT: eine Spalte, Tabs oben, Übungsauswahl, Einstellungen unten */
+:root{color-scheme:light dark;
+--bg:light-dark(#fbfaf7,#14151a);--card:light-dark(#fff,#1e2028);--ink:light-dark(#1b1c20,#eceae4);
+--mut:light-dark(#6b6d75,#9b9da6);--line:light-dark(#e4e1d9,#30323b);--soft:light-dark(#fdeceb,#3a2224);
+--acc:#e5484d;--ok:light-dark(#178a4a,#3ccf7d);--oks:light-dark(#e3f5ea,#163524);--warn:light-dark(#c77406,#f0a43a);
+--fire:#ff7a1a;--gold:#e9a514;--hoch:#e9a514;--mittel:#119c9c;--tief:#7a5af5}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 ui-rounded,"SF Pro Rounded",Nunito,system-ui,sans-serif;overflow-x:clip}
+main{max-width:880px;margin:0 auto;padding:8px max(4vw,14px) 56px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:880px;margin:0 auto;padding:12px max(4vw,14px) 4px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:21px;display:flex;align-items:center;gap:8px}
+.brand svg{width:24px;height:24px}
+.stats{display:flex;gap:6px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:4px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 11px;font:800 15px Nunito,sans-serif;min-height:40px;cursor:pointer;white-space:nowrap}
+.pill svg{width:18px;height:18px}
+.pill .vc{color:var(--vc,var(--mut))}
+.tabs{display:flex;gap:2px;max-width:880px;margin:6px auto 0;padding:0 max(4vw,14px);overflow-x:auto;scrollbar-width:none}
+.tabs button{flex:1 0 auto;border:0;background:transparent;color:var(--mut);font:800 15px Nunito,sans-serif;padding:12px 10px;border-bottom:3px solid var(--line);cursor:pointer;min-height:48px;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--acc)}
+h1{font-size:clamp(26px,5vw,36px);line-height:1.1;margin:18px 0 8px;text-wrap:balance}
+h2{font-size:19px;margin:0 0 8px}
+.lead{color:var(--mut);margin:0 0 16px;max-width:62ch}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:640px){.cards{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px;position:relative}
+.card[aria-pressed=true]{border-color:var(--vc);box-shadow:0 0 0 3px color-mix(in srgb,var(--vc) 25%,transparent)}
+.card .bar{height:8px;border-radius:8px;background:var(--vc)}
+.card h3{margin:2px 0 0;font-size:24px}
+.card p{margin:0;color:var(--mut);font-size:15px}
+.card .rng{font-weight:800;color:var(--ink)}
+.card .row{margin-top:auto}
+.reco{position:absolute;top:10px;right:12px;background:var(--vc);color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:3px 9px}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-top:16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 18px;font:800 16px Nunito,sans-serif;min-height:48px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn svg{width:18px;height:18px;fill:currentColor}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.ghost{border-color:var(--line)}
+.btn.small{min-height:44px;padding:8px 14px;font-size:15px}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.titlerow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.voicetag{font-weight:800;color:var(--vc,var(--mut))}
+.picker{display:grid;gap:10px;margin:4px 0 12px}
+.lvl{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px;align-items:center}
+@media(max-width:520px){.lvl{grid-template-columns:minmax(0,1fr)}}
+.lvl b{font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}
+.tile{position:relative;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;min-height:40px;font:800 14px Nunito,sans-serif;cursor:pointer;padding:0}
+.tile.done{background:var(--oks);border-color:var(--ok);color:var(--ok)}
+.tile[aria-current=true]{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.extitle{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
+.extitle strong{font-size:18px}
+.extitle .lv{font-size:13px;font-weight:800;color:#fff;border-radius:999px;padding:2px 10px;margin-right:6px}
+.lv1{background:var(--ok)}.lv2{background:var(--warn)}.lv3{background:var(--acc)}
+.sheet{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px 6px;overflow-x:auto}
+.sheet svg{width:100%;height:auto;display:block;margin:0 auto}
+.sl{stroke:var(--ink);stroke-width:1.2;opacity:.75}
+.n{color:var(--ink)}.n.cur{color:var(--acc)}.n.hit{color:var(--ok)}.n.skip{color:var(--mut)}.n.early,.n.late{color:var(--warn)}.n.miss{color:var(--acc)}.n.tgt{color:var(--acc)}
+.n ellipse,.n .f{fill:currentColor}.n line,.n path.s{stroke:currentColor}
+.n ellipse.open{fill:none;stroke:currentColor;stroke-width:2.2}
+.hl{fill:var(--soft)}
+.nl{font:800 15px Nunito,sans-serif;fill:var(--mut)}
+.cnt{font:700 12px Nunito,sans-serif;fill:var(--mut)}
+.tag{font:800 16px Nunito,sans-serif}
+.clef{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-linecap:round}
+.clefdot{fill:var(--ink)}
+.ts{font:800 22px Nunito,sans-serif;fill:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tuner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center}
+@media(max-width:600px){.tuner{grid-template-columns:minmax(0,1fr)}}
+.tuner .row{grid-column:1/-1}
+.gauge{width:100%;max-width:330px;height:auto;margin:0 auto;display:block}
+.big{font-size:clamp(40px,9vw,56px);font-weight:800;line-height:1}
+.hint{font-size:18px;font-weight:700;margin-top:6px;min-height:2.6em}
+.hint.ok{color:var(--ok)}.hint.lo,.hint.hi{color:var(--acc)}
+.holdbar{height:10px;border-radius:10px;background:var(--line);overflow:hidden;margin-top:8px}
+.holdbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
+.msg{font-weight:800;font-size:18px;min-height:1.5em;margin:12px 0 0}
+.settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+@media(max-width:600px){.settings{grid-template-columns:minmax(0,1fr)}}
+.settings>label,.settings>div{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:15px}
+.chk{display:flex;flex-direction:row!important;align-items:center;gap:10px;min-height:44px;font-weight:700}
+.chk input{width:22px;height:22px;accent-color:var(--acc);flex:none}
+select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-height:48px;width:100%}
+.seg{display:flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink);font:700 15px Nunito,sans-serif;min-height:46px;cursor:pointer;padding:4px 6px}
+.seg button+button{border-left:2px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.tv{display:flex;align-items:center;gap:10px}
+.tv input{flex:1;accent-color:var(--acc);height:32px}
+.tv output{font-weight:800;white-space:nowrap;min-width:6.5em}
+.pad{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:150px;margin-top:14px;border:3px dashed var(--line);border-radius:22px;background:var(--card);color:var(--ink);font:800 24px Nunito,sans-serif;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:background .06s,transform .06s}
+.pad small{font-size:14px;color:var(--mut);font-weight:600;text-align:center;padding:0 10px}
+.pad.rec{border-style:solid;border-color:var(--acc)}
+.pad.flash{background:var(--soft);transform:scale(.985)}
+.pad .cd{font-size:48px;color:var(--acc)}
+.tline{width:100%;height:auto;display:block}
+.live{font-weight:800;font-size:22px}
+.err{background:var(--soft);border-color:var(--acc)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.note{font-size:13px;color:var(--mut);margin-top:22px}
+/* Start */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:20px;align-items:center}
+@media(max-width:700px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero svg{width:100%;max-width:360px;height:auto;margin:0 auto;display:block}
+.form{display:grid;gap:14px}
+.form label{display:grid;gap:6px;font-weight:800}
+.plist{display:grid;gap:8px}
+.prof{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card)}
+.prof b{font-size:18px}.prof span{color:var(--mut);font-size:14px}
+/* Erfolge */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:10px;align-items:center}
+.kpi svg{width:40px;height:40px;flex:none}
+.kpi b{font-size:28px;line-height:1;display:block}
+.kpi span{font-size:13px;color:var(--mut);font-weight:700}
+.slots{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.slot{width:54px;height:54px;border-radius:14px;border:2px dashed var(--line);display:grid;place-items:center}
+.slot svg{width:34px;height:34px}
+.slot.on{border-style:solid;border-color:var(--fire);background:color-mix(in srgb,var(--fire) 12%,transparent)}
+.slot.gold.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.dots{display:flex;gap:8px;margin:6px 0}
+.dots i{width:22px;height:22px;border-radius:50%;border:2px solid var(--fire)}
+.dots i.on{background:var(--fire)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;font-size:13px;font-weight:800;color:var(--mut)}
+.week div{display:grid;gap:4px;justify-items:center}
+.week i{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;color:#fff}
+.week i.on{background:var(--ok);border-color:var(--ok)}
+.week i.today{border-color:var(--acc)}
+.meter{height:12px;border-radius:12px;background:var(--line);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--ok)}
+.prog{display:grid;gap:10px}
+.prog div{font-weight:700}
+/* Feier */
+.overlay{position:fixed;inset:0;background:rgba(10,10,14,.55);display:grid;place-items:center;z-index:10;padding:20px}
+.celebrate{background:var(--card);border-radius:24px;padding:26px 22px;max-width:360px;width:100%;text-align:center;animation:pop .35s ease-out}
+.celebrate svg{width:120px;height:120px}
+.celebrate h2{font-size:26px;margin:8px 0 4px}
+.celebrate p{color:var(--mut);margin:0 0 16px}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:800;z-index:9;max-width:92vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18.5a3 3 0 1 1-2-2.8V4l12-2v13.5a3 3 0 1 1-2-2.8V6.3l-8 1.4z" fill="var(--acc)"/></svg>Singtrainer</div>
+  <div class="stats" id="stats" hidden>
+    <button class="pill" data-go="win" title="Flammen"><svg viewBox="0 0 24 24"><use href="#i-flame"/></svg><span id="hFl">0</span></button>
+    <button class="pill" data-go="win" title="Tage in Folge"><svg viewBox="0 0 24 24"><use href="#i-streak"/></svg><span id="hSt">0</span></button>
+    <button class="pill" id="hSound" title="Ton testen" aria-label="Ton testen"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="var(--ink)"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <button class="pill" id="hProf" data-go="voice"><span id="hName"></span>·<span class="vc" id="hVoice"></span></button>
+  </div>
+</header>
+<nav class="tabs" id="tabs" role="tablist" hidden>
+  <button data-v="voice" role="tab">Stimmlage</button>
+  <button data-v="mel" role="tab">Melodie</button>
+  <button data-v="har" role="tab">Harmonie</button>
+  <button data-v="rhy" role="tab">Rhythmus</button>
+  <button data-v="win" role="tab">Erfolge</button>
+</nav>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gf" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e5484d"/><stop offset=".6" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffc53d"/></linearGradient>
+    <linearGradient id="gg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c9860a"/><stop offset="1" stop-color="#ffd659"/></linearGradient>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path fill="url(#gf)" d="M12 1.5c.8 3.6 5.8 5.6 5.8 11.3A5.8 5.8 0 0 1 6.2 13c0-2.6 1.2-4.4 2.6-5.6-.1 2.2.8 3.6 2.2 4 -.9-3.4.1-7 1-9.9z"/><path fill="#ffe08a" d="M12 21a3 3 0 0 1-3-3c0-1.8 1.4-2.7 2-4 .3 1.3 1.2 1.6 1.8 1.4.1 1 1.2 1.6 1.2 2.6a3 3 0 0 1-2 3z"/></symbol>
+    <symbol id="i-streak" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="var(--ok)" stroke-width="2.2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="var(--ok)" stroke-width="2.2"/><path d="M8 15l2.5 2.5L16 12.5" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path fill="url(#gg)" d="M6 3h12v4.5a6 6 0 0 1-12 0z"/><path d="M6 5H3v1.5A3.5 3.5 0 0 0 6.5 10M18 5h3v1.5a3.5 3.5 0 0 1-3.5 3.5" fill="none" stroke="#c9860a" stroke-width="1.8"/><path fill="#c9860a" d="M10.5 13h3v4h-3z"/><rect x="7" y="17" width="10" height="4" rx="1.5" fill="url(#gg)"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path fill="url(#gg)" d="M3 8l4.5 4L12 4l4.5 8L21 8l-2 11H5z"/><rect x="5" y="19" width="14" height="2.5" rx="1" fill="#c9860a"/><circle cx="12" cy="14.5" r="1.8" fill="#e5484d"/></symbol>
+  </defs>
+</svg>
+<main>
+<div id="micErr" class="panel err" hidden></div>
+
+<!-- START / PROFIL -->
+<section id="v-start" class="view">
+  <div class="hero">
+    <div>
+      <h1>Willkommen beim Singtrainer!</h1>
+      <p class="lead">Trainiere Melodien, Harmonien und Rhythmus. Für jede 5. geschaffte Übung bekommst du eine Flamme. Mit 3 Flammen in einer Woche gibt es einen Pokal, und wer 4 Wochen hintereinander dranbleibt, bekommt die Krone.</p>
+    </div>
+    <svg viewBox="0 0 300 200" aria-hidden="true">
+      <rect x="10" y="40" width="280" height="130" rx="18" fill="var(--card)" stroke="var(--line)" stroke-width="3"/>
+      <g stroke="var(--ink)" stroke-width="1.4" opacity=".7"><line x1="30" x2="270" y1="80" y2="80"/><line x1="30" x2="270" y1="92" y2="92"/><line x1="30" x2="270" y1="104" y2="104"/><line x1="30" x2="270" y1="116" y2="116"/><line x1="30" x2="270" y1="128" y2="128"/></g>
+      <g fill="var(--ink)"><ellipse cx="90" cy="122" rx="8" ry="5.8" transform="rotate(-20 90 122)"/><ellipse cx="135" cy="110" rx="8" ry="5.8" transform="rotate(-20 135 110)"/><ellipse cx="180" cy="98" rx="8" ry="5.8" transform="rotate(-20 180 98)"/></g>
+      <g fill="var(--ok)"><ellipse cx="225" cy="86" rx="8" ry="5.8" transform="rotate(-20 225 86)"/></g>
+      <g stroke="var(--ink)" stroke-width="1.8"><line x1="97" x2="97" y1="122" y2="84"/><line x1="142" x2="142" y1="110" y2="72"/><line x1="187" x2="187" y1="98" y2="60"/></g>
+      <line x1="232" x2="232" y1="86" y2="48" stroke="var(--ok)" stroke-width="1.8"/>
+      <use href="#i-flame" x="232" y="2" width="56" height="56"/>
+      <use href="#i-trophy" x="18" y="140" width="48" height="48"/>
+      <use href="#i-crown" x="250" y="146" width="40" height="40"/>
+    </svg>
+  </div>
+  <div class="panel" id="profList" hidden>
+    <h2>Wer übt heute?</h2>
+    <div class="plist" id="plist"></div>
+  </div>
+  <div class="panel">
+    <h2 id="formTitle">Erzähl uns kurz etwas über dich</h2>
+    <form class="form" id="pform">
+      <label>Spitzname <input type="text" id="fName" maxlength="20" placeholder="z. B. Lena oder Singstar" autocomplete="off"></label>
+      <label>Wie alt bist du?
+        <select id="fAge"><option value="">Bitte wählen</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option value="18">18 oder älter</option></select></label>
+      <div style="display:grid;gap:6px;font-weight:800">Du bist …
+        <div class="seg" id="fGender"><button type="button" data-g="w">ein Mädchen</button><button type="button" data-g="m">ein Junge</button><button type="button" data-g="x">keine Angabe</button></div></div>
+      <p id="fErr" style="color:var(--acc);font-weight:800;margin:0" hidden></p>
+      <div class="row"><button class="btn primary" type="submit">Weiter zur Stimmlage</button><button class="btn ghost" type="button" id="fSound">Ton testen</button></div>
+      <p style="color:var(--mut);font-size:14px;margin:0">Alter und Geschlecht helfen nur bei der Empfehlung für deine Stimmlage. Alles bleibt auf diesem Gerät.</p>
+    </form>
+  </div>
+</section>
+
+<!-- STIMMLAGE -->
+<section id="v-voice" class="view" hidden>
+  <h1>Wie klingt deine Stimme?</h1>
+  <p class="lead" id="recoText">Schätz dich selbst ein. Tipp auf „Anhören“ und sing leise mit: Wenn alle Töne bequem gehen, passt die Stimmlage.</p>
+  <div id="cards" class="cards"></div>
+  <div class="panel">
+    <h2>Nicht sicher? Der Stimm-Check hilft</h2>
+    <p class="lead" style="margin-bottom:10px">Sing 4 Sekunden lang ein bequemes „la“ – nicht extra hoch, nicht extra tief, so wie beim Sprechen.</p>
+    <div class="row"><button id="chkBtn" class="btn"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1a7 7 0 0 0 6-6.9z"/></svg>Stimm-Check starten</button><span id="chkLive" class="live"></span></div>
+    <p id="chkOut" style="font-weight:700;margin-bottom:0"></p>
+  </div>
+</section>
+
+<!-- MELODIE -->
+<section id="v-mel" class="view" hidden>
+  <div class="titlerow"><h1>Melodietrainer</h1><span class="voicetag vtag"></span></div>
+  <div class="picker" id="mPick"></div>
+  <div class="extitle" id="mTitle"></div>
+  <div class="sheet"><svg id="mStaff" role="img" aria-label="Noten der Übung"></svg></div>
+  <div class="actions">
+    <button id="mPlay" class="btn"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>Vorspielen</button>
+    <button id="mSing" class="btn primary"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1a7 7 0 0 0 6-6.9z"/></svg>Nachsingen</button>
+    <button id="mNext" class="btn ghost">Nächste Übung</button>
+  </div>
+  <div id="mTuner"></div>
+  <p id="mMsg" class="msg" aria-live="polite"></p>
+  <div class="panel settings sset"></div>
+</section>
+
+<!-- HARMONIE -->
+<section id="v-har" class="view" hidden>
+  <div class="titlerow"><h1>Harmonietrainer</h1><span class="voicetag vtag"></span></div>
+  <p class="lead" style="margin-bottom:8px">Die schwarzen Noten werden vorgespielt (Klavier oder Stimme). Du singst die rote Note dazu – erst Intervalle, dann Akkorde.</p>
+  <div class="picker" id="hPick"></div>
+  <div class="extitle" id="hTitle"></div>
+  <div class="sheet"><svg id="hStaff" role="img" aria-label="Noten der Übung"></svg></div>
+  <div class="actions">
+    <button id="hPlay" class="btn"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>Vorspielen</button>
+    <button id="hSing" class="btn primary"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1a7 7 0 0 0 6-6.9z"/></svg>Dazusingen</button>
+    <button id="hNext" class="btn ghost">Nächste Übung</button>
+  </div>
+  <div id="hTuner"></div>
+  <p id="hMsg" class="msg" aria-live="polite"></p>
+  <div class="panel settings">
+    <div>Dein Ton wird …<div class="seg" id="hMode"><button data-m="hear">vorgespielt</button><button data-m="note">nur als Note gezeigt</button></div></div>
+    <label class="chk"><input type="checkbox" id="hDrone">Vorgabe beim Singen weiterklingen lassen (nur mit Kopfhörern)</label>
+  </div>
+  <div class="panel settings sset"></div>
+</section>
+
+<!-- RHYTHMUS -->
+<section id="v-rhy" class="view" hidden>
+  <h1>Rhythmustrainer</h1>
+  <div class="picker" id="rPick"></div>
+  <div class="extitle" id="rTitle"></div>
+  <div class="sheet"><svg id="rStaff" role="img" aria-label="Rhythmus in Noten"></svg></div>
+  <div class="actions">
+    <button id="rPlay" class="btn"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>Vorspielen</button>
+    <button id="rGo" class="btn primary">Ich bin dran</button>
+    <button id="rNext" class="btn ghost">Nächste Übung</button>
+  </div>
+  <button id="pad" class="pad">Hier klopfen<small>Tippen oder Leertaste – nach dem Einzählen „1 2 3 4“</small></button>
+  <div id="rRes" class="panel" hidden>
+    <svg id="tline" class="tline" viewBox="0 0 600 70" aria-hidden="true"></svg>
+    <div class="legend"><span><i style="background:var(--ok)"></i>genau</span><span><i style="background:var(--warn)"></i>← zu früh / → zu spät</span><span><i style="background:var(--acc)"></i>verpasst</span><span><i style="background:var(--mut)"></i>Soll-Schlag</span></div>
+    <p id="rMsg" class="msg"></p>
+  </div>
+  <div class="panel settings">
+    <div>Tempo<div class="tv"><input type="range" class="bpm" min="40" max="160" step="5" aria-label="Tempo"><output class="bpmOut"></output></div></div>
+    <label class="chk"><input type="checkbox" id="metro">Metronom mitlaufen lassen</label>
+  </div>
+</section>
+
+<!-- ERFOLGE -->
+<section id="v-win" class="view" hidden>
+  <h1 id="wTitle">Deine Erfolge</h1>
+  <div class="kpis" id="kpis"></div>
+  <div class="panel"><h2>Nächste Flamme</h2><div class="dots" id="wDots"></div><p class="lead" id="wDotsT" style="margin:0"></p></div>
+  <div class="panel"><h2>Diese Woche: Wochen-Pokal</h2><div class="slots" id="wWeek"></div><p class="lead" id="wWeekT" style="margin:0"></p></div>
+  <div class="panel"><h2>4 Wochen dranbleiben: Krone</h2><div class="slots" id="wMonth"></div><p class="lead" id="wMonthT" style="margin:0"></p></div>
+  <div class="panel"><h2>Streak – Tage in Folge</h2><div class="week" id="wDays"></div><p class="lead" id="wDaysT" style="margin:8px 0 0"></p></div>
+  <div class="panel"><h2>Geschaffte Übungen</h2><div class="prog" id="wProg"></div></div>
+  <div class="panel">
+    <h2>Profil</h2><p id="wProf" style="margin-top:0"></p>
+    <div class="row"><button class="btn small ghost" id="wSwitch">Profil wechseln</button><button class="btn small ghost" id="wDel">Profil löschen</button></div>
+  </div>
+</section>
+<p class="note">Läuft komplett auf diesem Gerät – es wird nichts aufgenommen oder ins Internet geschickt. Mit Kopfhörern klappt die Tonerkennung am besten.</p>
+</main>
+<div id="overlay" class="overlay" hidden><div class="celebrate" role="dialog" aria-modal="true"><svg viewBox="0 0 24 24" id="cIcon"></svg><h2 id="cTitle"></h2><p id="cText"></p><button class="btn primary" id="cOk">Weiter</button></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================= Daten ================= */
+const VOICES={
+  hoch:{name:'Hoch',desc:'Helle Stimme, z. B. Sopran',clef:'treble',lo:28,hi:37,base:28,col:'var(--hoch)'},
+  mittel:{name:'Mittel',desc:'Mittlere Stimme, z. B. Alt',clef:'treble',lo:25,hi:35,base:28,col:'var(--mittel)'},
+  tief:{name:'Tief',desc:'Dunkle Stimme, z. B. im oder nach dem Stimmbruch',clef:'bass',lo:18,hi:28,base:21,col:'var(--tief)'}};
+const LV=['Einfach','Mittel','Anspruchsvoll'];
+/* Melodie: Stufen relativ zum Grundton (0 = c' bzw. c), ":2" halbe, ":4" ganze Note */
+const MEL=[
+ ['Ein Ton: c','0:4'],['Ein Ton: e','2:4'],['Ein Ton: g','4:4'],['Zwei Nachbarn','0 1:2'],['Einen Schritt abwärts','2 1:2'],
+ ['Drei Stufen aufwärts','0 1 2:2'],['Drei Stufen abwärts','4 3 2:2'],['Kuckucksruf','4 2:2'],['Hin und zurück','0 1 2 1 0:2'],['Bruder Jakob (Anfang)','0 1 2 0'],
+ ['Alle meine Entchen (Anfang)','0 1 2 3 4:2 4:2'],['Hänschen klein (Anfang)','4 2 2:2 3 1 1:2'],['Terzen-Treppe','0 2 1 3 2 4:2'],['Dreiklang auf und ab','0 2 4:2 2 0:2'],['Tonleiter aufwärts','0 1 2 3 4 5 6 7:2'],
+ ['Tonleiter abwärts','7 6 5 4 3 2 1 0:2'],['Kuckuck-Motiv','4 2 4 2 3 2 1 0:2'],['Quarte und zurück','0 3:2 2 1 0:2'],['Wellen','2 4 3 5 4 2:2'],['Absteigende Dreiergruppen','4 3 2:2 3 2 1:2'],
+ ['Quintsprung','0 4:2 4 0:2'],['Sextsprung','0 5:2 4 2:2'],['Oktavsprung','0 7:2 6 5 4:2'],['Dreiklang-Sprünge','0 4 2 7:2 4 0:2'],['Hänschen klein (erste Zeile)','4 2 2:2 3 1 1:2 0 1 2 3 4 4 4:2'],
+ ['Alle meine Entchen (weiter)','0 1 2 3 4:2 4:2 5 5 5 5 4:4'],['Sprünge abwärts','7 4 5 2 3 0:2'],['d-Moll-Melodie','1 3 5 3 1:2 0 1:2'],['Septime und Auflösung','0 6:2 7:2'],['Große Melodie','0 2 4 7 6 4 5 3 2 1 0:2']
+].map(([t,s])=>({t,n:s.split(' ').map(x=>{const[a,b]=x.split(':');return{o:+a,d:+(b||1)}})}));
+/* Harmonie: g = Töne vom Klavier, t = Ton zum Singen, Name optional (sonst Intervallname) */
+const HAR=[
+ [[0],0],[[0],1],[[0],2],[[0],4],[[0],7],[[4],2],[[2],4],[[4],0],[[0],3],[[4],3],
+ [[1],3],[[0],5],[[7],2],[[2],5],[[3],7],
+ [[0,2],4,'C-Dur: Quinte dazusingen'],[[0,4],2,'C-Dur: Terz dazusingen'],[[2,4],0,'C-Dur: Grundton dazusingen'],[[3,5],7,'F-Dur: Quinte dazusingen'],[[5,7],3,'F-Dur: Grundton dazusingen'],
+ [[1,5],3,'d-Moll: Terz dazusingen'],[[2,6],4,'e-Moll: Terz dazusingen'],[[0,2],5,'a-Moll: Grundton dazusingen'],[[1,6],4,'G-Dur: Grundton dazusingen'],[[0,5],3,'F-Dur: Grundton dazusingen'],
+ [[1,4,6],3,'G7: Septime dazusingen'],[[0],6],[[1],7],[[0,4,7],2,'C-Dur: Terz in die Mitte singen'],[[3],6]
+].map(([g,t,name])=>({g,t,name}));
+/* Rhythmus: Takte mit | getrennt; q Viertel, h Halbe, w Ganze, r Viertelpause, ee zwei Achtel, e Achtel, dqe punktierte Viertel + Achtel */
+const RHY=['q q q q','h h','q q h','h q q','q r q r','q q q q|h h','q r q q|h h','h q r|q q h','q q h|q q h','q r h|q q q r',
+ 'ee q ee q','q ee q ee','ee ee q q','ee q q q|ee ee h','q ee q r|ee ee q q','ee ee ee q|h ee q','h ee ee|q r ee q','ee q ee ee|q q h','q q ee ee|ee q h','ee ee h|ee ee q r',
+ 'dqe q q|dqe h','q dqe q|dqe h','e q e q q|h h','q e q e q|q q h','ee e q e q|dqe q r','dqe ee ee|e q e h','r ee q ee|dqe h','e q e e q e|dqe h','ee r ee q|e q e ee q','dqe e q e|ee e q e q'];
+const RNAME=['Viertel','Halbe','Viertel und Halbe','Halbe und Viertel','Mit Viertelpausen','Zwei Takte','Pause im ersten Takt','Halbe, Pause, Halbe','Gleiche Takte','Pausen an neuen Stellen',
+ 'Achtelpaare','Achtel hinten','Achtel vorne','Achtel in zwei Takten','Achtel und Pause','Viele Achtel','Achtel nach der Halben','Achtel-Mix','Achtel am Ende','Achtel und Halbe',
+ 'Punktierte Viertel','Punktierte in der Mitte','Synkope','Doppelte Synkope','Synkope und Punktierung','Punktiert und synkopiert','Auftakt-Pause','Synkopen-Kette','Pause zwischen Achteln','Profi-Rhythmus'];
+
+/* ================= Speicher / Profil ================= */
+let DB={profiles:[],current:null};
+try{const d=JSON.parse(localStorage.getItem('singtrainer2')||'null');if(d&&Array.isArray(d.profiles))DB=d}catch(e){}
+const save=()=>{try{localStorage.setItem('singtrainer2',JSON.stringify(DB))}catch(e){}};
+let P=null;
+function newProfile(name,age,gender){return{id:Date.now().toString(36),name,age,gender,voice:null,bpm:80,tol:30,oct:true,names:true,metro:true,hMode:'hear',drone:false,sound:'piano',
+  cur:{m:0,h:0,r:0},done:{m:{},h:{},r:{}},solved:0,flames:0,days:{},weeks:{},crowns:0,best:0}}
+function useProfile(id){P=DB.profiles.find(p=>p.id===id)||null;DB.current=P?P.id:null;save();}
+
+/* ================= Hilfsfunktionen Musik ================= */
+const STEP=[0,2,4,5,7,9,11],PC=['c','cis','d','dis','e','f','fis','g','gis','a','b','h'];
+const dnMidi=dn=>12*(Math.floor(dn/7)+1)+STEP[((dn%7)+7)%7];
+function midiName(m){const pc=((m%12)+12)%12,o=Math.floor(m/12)-1,b=PC[pc];
+  if(o>=4)return b+"'".repeat(o-3);if(o===3)return b;const B=b[0].toUpperCase()+b.slice(1);return o===2?B:B+','.repeat(2-o);}
+const IV=['Prime','kleine Sekunde','große Sekunde','kleine Terz','große Terz','Quarte','Tritonus','Quinte','kleine Sexte','große Sexte','kleine Septime','große Septime','Oktave'];
+function ivName(a,b){const s=dnMidi(b)-dnMidi(a);if(s===0)return 'Prime: denselben Ton singen';const n=IV[Math.min(12,Math.abs(s))];return n[0].toUpperCase()+n.slice(1)+(s>0?' aufwärts':' abwärts');}
+const V=()=>VOICES[P.voice];
+
+/* ================= Datum / Gamification ================= */
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function monday(d=new Date()){const m=new Date(d.getFullYear(),d.getMonth(),d.getDate());m.setDate(m.getDate()-((m.getDay()+6)%7));return m}
+function streak(){const d=new Date();if(!P.days[ymd(d)])d.setDate(d.getDate()-1);let n=0;while(P.days[ymd(d)]){n++;d.setDate(d.getDate()-1)}return n}
+function weekRun(){const d=monday();if((P.weeks[ymd(d)]||0)<3)d.setDate(d.getDate()-7);let n=0;while((P.weeks[ymd(d)]||0)>=3){n++;d.setDate(d.getDate()-7)}return n}
+function award(kind,idx){P.done[kind][idx]=(P.done[kind][idx]||0)+1;P.solved++;const dk=ymd(new Date());P.days[dk]=(P.days[dk]||0)+1;
+  const ev=[];if(P.solved%5===0){P.flames++;const wk=ymd(monday());P.weeks[wk]=(P.weeks[wk]||0)+1;ev.push('flame');
+    if(P.weeks[wk]===3){ev.push('trophy');let n=0;const d=monday();while((P.weeks[ymd(d)]||0)>=3){n++;d.setDate(d.getDate()-7)}if(n%4===0){P.crowns++;ev.push('crown')}}}
+  P.best=Math.max(P.best,streak());save();header();renderPicker(kind);
+  if(ev.length)celebrate(ev);else toast(`Richtig! Noch ${5-P.solved%5} ${5-P.solved%5===1?'Übung':'Übungen'} bis zur nächsten Flamme.`);}
+const CEL={flame:['i-flame','Du hast eine Flamme!','5 Übungen geschafft – stark!'],
+  trophy:['i-trophy','Wochen-Pokal!','3 Flammen in dieser Woche. Du bist richtig fleißig!'],
+  crown:['i-crown','Die Krone gehört dir!','4 Wochen hintereinander den Wochen-Pokal geholt. Wow!']};
+let celQ=[];
+function celebrate(ev){celQ.push(...ev);if($('#overlay').hidden)nextCel()}
+function nextCel(){const e=celQ.shift();if(!e){$('#overlay').hidden=true;return}const[c,t,x]=CEL[e];
+  $('#cIcon').innerHTML=`<use href="#${c}"/>`;$('#cTitle').textContent=t;$('#cText').textContent=x;$('#overlay').hidden=false;$('#cOk').focus();
+  try{const a=ac(),t0=a.currentTime+0.05;[72,76,79,84].forEach((m,i)=>piano(m,t0+i*0.11,0.25))}catch(err){}}
+$('#cOk').onclick=nextCel;
+$('#hSound').onclick=soundTest;$('#fSound').onclick=soundTest;
+let toastT=0;function toast(s){const t=$('#toast');t.textContent=s;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+function header(){if(!P)return;$('#hFl').textContent=P.flames;$('#hSt').textContent=streak();$('#hName').textContent=P.name;
+  $('#hVoice').textContent=P.voice?VOICES[P.voice].name:'?';document.documentElement.style.setProperty('--vc',P.voice?VOICES[P.voice].col:'var(--mut)');
+  $$('.vtag').forEach(e=>e.textContent=P.voice?'Stimmlage '+V().name+' · '+midiName(dnMidi(V().lo))+' bis '+midiName(dnMidi(V().hi)):'');}
+
+/* ================= Audio ================= */
+let ctx=null;
+function ac(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});if(ctx.state!=='running')ctx.resume().catch(()=>{});return ctx}
+/* Ton freischalten: iPhone-Stummschalter umgehen und Audio beim ersten Tippen entsperren */
+let unlocked=false,silentEl=null;
+function silentWav(){const n=4000,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=(o,t)=>[...t].forEach((c,i)=>b[o+i]=c.charCodeAt(0));
+  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);b.fill(128,44);
+  let s='';b.forEach(x=>s+=String.fromCharCode(x));return 'data:audio/wav;base64,'+btoa(s)}
+function setSession(t){try{if(navigator.audioSession)navigator.audioSession.type=t}catch(e){}}
+function unlock(){const c=ac();if(unlocked)return;unlocked=true;setSession('playback');
+  try{const b=c.createBuffer(1,1,22050),src=c.createBufferSource();src.buffer=b;src.connect(c.destination);src.start(0)}catch(e){}
+  try{silentEl=new Audio(silentWav());silentEl.loop=true;silentEl.setAttribute('playsinline','');silentEl.volume=0.01;silentEl.play().catch(()=>{})}catch(e){}}
+['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{capture:true}));
+function soundTest(){unlock();const c=ac(),t=c.currentTime+0.08;[60,64,67,72].forEach((m,i)=>piano(m,t+i*0.18,0.5));
+  setTimeout(()=>{if(c.state!=='running')toast('Der Browser blockiert den Ton. Öffne die Datei direkt in Safari oder Chrome und tippe nochmal.');
+    else toast('Hörst du nichts? Lautstärke hochdrehen, am iPhone den Stumm-Schalter ausschalten, Bluetooth prüfen.')},700)}
+function piano(m,t,dur,vol=0.32){const c=ac(),f=440*2**((m-69)/12),out=c.createGain(),lp=c.createBiquadFilter();
+  lp.type='lowpass';lp.frequency.value=Math.min(9000,f*8);out.gain.value=vol;lp.connect(out);out.connect(c.destination);
+  [[1,1],[2,.45],[3,.22],[4,.12],[5,.05]].forEach(([n,a],i)=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=f*n*(1+i*0.0007);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a,t+0.006);g.gain.exponentialRampToValueAtTime(a*0.35,t+0.25/(1+i*0.5));
+    g.gain.setValueAtTime(a*0.3,t+dur);g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.35);o.connect(g);g.connect(lp);o.start(t);o.stop(t+dur+0.4)});}
+/* Gesungener Ton auf „doo“: Stimmband-Ton (Sägezahn) mit Vibrato, gefiltert durch die Formanten des Vokals u, davor ein kurzes „d“ */
+let noiseBuf=null;
+function voice(m,t,dur,vol=0.3){const c=ac(),f=440*2**((m-69)/12),end=t+dur+0.18;
+  const src=c.createOscillator();src.type='sawtooth';src.frequency.setValueAtTime(f*0.95,t);src.frequency.exponentialRampToValueAtTime(f,t+0.08);
+  const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=5.3;lg.gain.setValueAtTime(0,t);lg.gain.setValueAtTime(0,t+0.3);lg.gain.linearRampToValueAtTime(f*0.007,t+0.7);lfo.connect(lg);lg.connect(src.frequency);
+  const amp=c.createGain(),out=c.createGain();out.gain.value=vol*(f<180?2.2:1.4);
+  const F=f<180?[[300,1],[750,.5],[2300,.08]]:f<330?[[320,1],[850,.45],[2400,.07]]:[[f*1.05,1],[900,.4],[2600,.06]];
+  F.forEach(([fr,g])=>{const bp=c.createBiquadFilter(),gg=c.createGain();bp.type='bandpass';bp.frequency.value=fr;bp.Q.value=Math.max(2,fr/90);gg.gain.value=g;src.connect(bp);bp.connect(gg);gg.connect(amp)});
+  amp.gain.setValueAtTime(0,t);amp.gain.linearRampToValueAtTime(0.8,t+0.025);amp.gain.linearRampToValueAtTime(1,t+0.09);amp.gain.setValueAtTime(1,t+dur);amp.gain.linearRampToValueAtTime(0,end);
+  amp.connect(out);out.connect(c.destination);
+  if(!noiseBuf){noiseBuf=c.createBuffer(1,c.sampleRate*0.03,c.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+  const ns=c.createBufferSource(),nb=c.createBiquadFilter(),ng=c.createGain();ns.buffer=noiseBuf;nb.type='bandpass';nb.frequency.value=3000;nb.Q.value=1.2;
+  ng.gain.setValueAtTime(vol*0.5,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.025);ns.connect(nb);nb.connect(ng);ng.connect(c.destination);ns.start(t);
+  src.start(t);lfo.start(t);src.stop(end+0.05);lfo.stop(end+0.05);
+  return{stop(){const n=c.currentTime;amp.gain.cancelScheduledValues(n);amp.gain.setValueAtTime(amp.gain.value,n);amp.gain.linearRampToValueAtTime(0,n+0.15);try{src.stop(n+0.2);lfo.stop(n+0.2)}catch(e){}}}}
+/* Klang je nach Einstellung: Klavier oder Stimme */
+function tone(m,t,dur,vol){if(P&&P.sound==='voice')return voice(m,t,dur,vol===undefined?0.3:vol*1.0);return piano(m,t,dur,vol)}
+function organ(m,t,dur,vol=0.1){const c=ac(),f=440*2**((m-69)/12),g=c.createGain(),o1=c.createOscillator(),o2=c.createOscillator(),g2=c.createGain();
+  o1.frequency.value=f;o2.frequency.value=f*2;g2.gain.value=0.3;o2.type='triangle';
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.06);g.gain.setValueAtTime(vol,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+0.25);
+  o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(c.destination);o1.start(t);o2.start(t);o1.stop(t+dur+0.3);o2.stop(t+dur+0.3);
+  return{stop(){const n=c.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(g.gain.value,n);g.gain.linearRampToValueAtTime(0,n+0.2);o1.stop(n+0.25);o2.stop(n+0.25)}}}
+function click(t,acc,vol=1){const c=ac(),o=c.createOscillator(),g=c.createGain();o.frequency.value=acc?1760:1200;
+  g.gain.setValueAtTime(0.35*vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.06)}
+function wood(t){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(500,t+0.08);
+  g.gain.setValueAtTime(0.7,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.13)}
+
+/* ================= Mikrofon + Tonhöhe (YIN) ================= */
+let analyser=null,buf=null,hist=[],lastSeen=0;
+async function startMic(){ac();if(analyser)return true;setSession('play-and-record');
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const src=ctx.createMediaStreamSource(st);analyser=ctx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);buf=new Float32Array(analyser.fftSize);$('#micErr').hidden=true;return true;
+  }catch(e){const el=$('#micErr');el.hidden=false;
+    el.innerHTML='<b>Kein Zugriff aufs Mikrofon.</b> Erlaube den Mikrofonzugriff, wenn der Browser fragt. Auf Handy und Tablet braucht die App eine https-Adresse; am PC geht auch die lokal geöffnete Datei in Chrome oder Edge.';
+    el.scrollIntoView({behavior:'smooth',block:'center'});return false}}
+function yin(b,sr){let r=0;for(let i=0;i<b.length;i++)r+=b[i]*b[i];if(Math.sqrt(r/b.length)<0.012)return null;
+  const W=b.length>>1,tMin=Math.floor(sr/1000),tMax=Math.min(W-1,Math.floor(sr/70)),d=new Float32Array(tMax+1);
+  for(let t=1;t<=tMax;t++){let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}d[t]=s}
+  let run=0;d[0]=1;for(let t=1;t<=tMax;t++){run+=d[t];d[t]=run?d[t]*t/run:1}
+  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.15){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
+  if(tau<0)return null;let bt=tau;if(tau>1&&tau<tMax){const a=d[tau-1],c=d[tau],e=d[tau+1],den=a+e-2*c;if(den)bt=tau+(a-e)/(2*den)}return sr/bt}
+function readPitch(){analyser.getFloatTimeDomainData(buf);const f=yin(buf,ctx.sampleRate),now=performance.now();
+  if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>5)hist.shift();lastSeen=now}else if(now-lastSeen>250)hist=[];
+  if(!hist.length)return null;const s=[...hist].sort((a,b)=>a-b);return s[s.length>>1]}
+let loopFn=null,lastTick=0;
+function loop(t){if(!loopFn)return;loopFn(t);requestAnimationFrame(loop)}
+function startLoop(fn){loopFn=fn;lastTick=performance.now();requestAnimationFrame(loop)}
+function stopLoop(){loopFn=null}
+
+/* ================= Navigation ================= */
+let VIEW='start';
+function show(v){stopSession();stopLoop();if(v!=='start'&&!P)v='start';if((v==='mel'||v==='har')&&!P.voice)v='voice';VIEW=v;
+  $$('.view').forEach(s=>s.hidden=s.id!=='v-'+v);$$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));
+  $('#tabs').hidden=$('#stats').hidden=v==='start';
+  if(v==='start')renderStart();if(v==='voice')renderVoice();if(v==='mel'){renderPicker('m');renderMel();resetTuner('m')}if(v==='har'){renderPicker('h');renderHar();resetTuner('h')}
+  if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();window.scrollTo(0,0)}
+$$('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+$$('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+
+/* ================= Start / Profil ================= */
+let fGender='';
+function renderStart(){const has=DB.profiles.length>0;$('#profList').hidden=!has;$('#formTitle').textContent=has?'Oder ein neues Profil anlegen':'Erzähl uns kurz etwas über dich';
+  $('#plist').innerHTML=DB.profiles.map(p=>`<div class="prof"><div><b>${esc(p.name)}</b><br><span>${p.age>=18?'18+':esc(p.age)} Jahre · ${p.voice?VOICES[p.voice].name:'Stimmlage offen'} · ${p.flames} Flammen</span></div><button class="btn small primary" data-pid="${esc(p.id)}">Los geht's</button></div>`).join('');
+  $$('[data-pid]').forEach(b=>b.onclick=()=>{useProfile(b.dataset.pid);header();show(P.voice?'mel':'voice')})}
+$$('#fGender button').forEach(b=>b.onclick=()=>{fGender=b.dataset.g;$$('#fGender button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+$('#pform').onsubmit=e=>{e.preventDefault();const age=+$('#fAge').value,err=$('#fErr');
+  if(!age){err.textContent='Bitte wähle dein Alter.';err.hidden=false;return}if(!fGender){err.textContent='Bitte wähle aus, ob du ein Mädchen oder ein Junge bist (oder „keine Angabe“).';err.hidden=false;return}
+  err.hidden=true;const p=newProfile($('#fName').value.trim()||'Singstar',age,fGender);DB.profiles.push(p);useProfile(p.id);
+  $('#fName').value='';$('#fAge').value='';fGender='';$$('#fGender button').forEach(x=>x.setAttribute('aria-pressed',false));header();show('voice')};
+
+/* ================= Stimmlage ================= */
+function recommend(p){if(p.gender==='m')return p.age>=14?'tief':p.age>=12?'mittel':'hoch';if(p.gender==='w')return p.age>=13?'mittel':'hoch';return 'mittel'}
+function renderVoice(){const r=recommend(P);let why='';
+  if(P.gender==='m'&&P.age>=12)why=' Bei Jungen beginnt mit etwa 12 bis 14 Jahren oft der Stimmbruch. Wenn hohe Töne schwerfallen, nimm „Tief“.';
+  else if(P.gender==='m')why=' Vor dem Stimmbruch singen Jungen meist genauso hoch wie Mädchen.';
+  $('#recoText').textContent=`Hallo ${P.name}! Für dich empfehlen wir „${VOICES[r].name}“.${why} Tipp auf „Anhören“ und sing leise mit – wenn alle Töne bequem gehen, passt es.`;
+  $('#cards').innerHTML=Object.entries(VOICES).map(([id,v])=>`<div class="card" data-id="${id}" style="--vc:${v.col}" aria-pressed="${P.voice===id}">${id===r?'<span class="reco">Empfohlen</span>':''}<div class="bar"></div><h3>${v.name}</h3><p>${v.desc}</p><p>Bereich: <span class="rng">${midiName(dnMidi(v.lo))} bis ${midiName(dnMidi(v.hi))}</span></p><div class="row"><button class="btn small ghost" data-hear="${id}">Anhören</button><button class="btn small primary" data-pick="${id}">Das bin ich</button></div></div>`).join('');
+  $$('[data-hear]').forEach(b=>b.onclick=()=>{const v=VOICES[b.dataset.hear],t=ac().currentTime+0.05;let i=0;for(let d=v.lo;d<=v.hi;d++,i++)tone(dnMidi(d),t+i*0.32,0.3)});
+  $$('[data-pick]').forEach(b=>b.onclick=()=>{P.voice=b.dataset.pick;save();header();show('mel')})}
+$('#chkBtn').onclick=async()=>{if(!await startMic())return;const vals=[],end=performance.now()+4000;hist=[];$('#chkOut').textContent='';$('#chkBtn').disabled=true;
+  startLoop(now=>{if(now-lastTick<40)return;lastTick=now;const m=readPitch();if(m!=null)vals.push(m);
+    $('#chkLive').textContent=(m!=null?midiName(Math.round(m)):'…')+'  ·  noch '+Math.max(0,Math.ceil((end-now)/1000))+' s';
+    if(now<end)return;stopLoop();$('#chkBtn').disabled=false;$('#chkLive').textContent='';
+    if(vals.length<20){$('#chkOut').textContent='Ich habe dich nicht gut gehört. Versuch es nochmal etwas lauter und näher am Gerät.';return}
+    vals.sort((a,b)=>a-b);const med=vals[vals.length>>1],id=med<53?'tief':med<63?'mittel':'hoch';
+    $('#chkOut').innerHTML=`Dein Ton lag ungefähr bei <b>${midiName(Math.round(med))}</b>. Vorschlag: <b>${VOICES[id].name}</b>. <button class="btn small primary" id="chkTake">Übernehmen</button>`;
+    $('#chkTake').onclick=()=>{P.voice=id;save();header();show('mel')}})};
+
+/* ================= Einstellungen (gemeinsam) ================= */
+const SSET=`<div>Klang der Vorgabe<div class="seg sSound"><button data-s="piano">Klavier</button><button data-s="voice">Stimme „doo“</button></div></div>
+<label>Genauigkeit<select class="sTol"><option value="50">Leicht (±50 Cent)</option><option value="30">Mittel (±30 Cent)</option><option value="15">Streng (±15 Cent)</option></select></label>
+<div>Tempo<div class="tv"><input type="range" class="bpm" min="40" max="160" step="5" aria-label="Tempo"><output class="bpmOut"></output></div></div>
+<label class="chk"><input type="checkbox" class="sOct">Oktave egal (jede Oktave zählt)</label><label class="chk"><input type="checkbox" class="sNames">Notennamen zeigen</label>`;
+$$('.sset').forEach(e=>e.innerHTML=SSET);
+const tempoWord=b=>b<66?'langsam':b<100?'mittel':'schnell';
+function syncSettings(){if(!P)return;$$('.sTol').forEach(s=>s.value=P.tol);$$('.sOct').forEach(c=>c.checked=P.oct);$$('.sNames').forEach(c=>c.checked=P.names);
+  $$('.bpm').forEach(i=>i.value=P.bpm);$$('.bpmOut').forEach(o=>o.textContent='♩ = '+P.bpm+' · '+tempoWord(P.bpm));$('#metro').checked=P.metro;$('#hDrone').checked=P.drone;
+  $$('#hMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===P.hMode));$$('.sSound button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===(P.sound||'piano')))}
+$$('.sSound button').forEach(b=>b.onclick=()=>{P.sound=b.dataset.s;save();syncSettings();tone(P.voice?dnMidi(V().base+2):64,ac().currentTime+0.05,0.8)});
+$$('.sTol').forEach(s=>s.onchange=()=>{P.tol=+s.value;save();syncSettings()});
+$$('.sOct').forEach(c=>c.onchange=()=>{P.oct=c.checked;save();syncSettings()});
+$$('.sNames').forEach(c=>c.onchange=()=>{P.names=c.checked;save();syncSettings();renderMel();renderHar()});
+$$('.bpm').forEach(i=>i.oninput=()=>{P.bpm=+i.value;save();syncSettings()});
+$('#metro').onchange=e=>{P.metro=e.target.checked;save()};$('#hDrone').onchange=e=>{P.drone=e.target.checked;save()};
+$$('#hMode button').forEach(b=>b.onclick=()=>{P.hMode=b.dataset.m;save();syncSettings()});
+
+/* ================= Übungsauswahl ================= */
+const KIND={m:{list:MEL,name:i=>MEL[i].t},h:{list:HAR,name:i=>HAR[i].name||ivName(HAR[i].g[0],HAR[i].t)},r:{list:RHY,name:i=>RNAME[i]}};
+function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),cur=P.cur[k];
+  el.innerHTML=LV.map((l,L)=>`<div class="lvl"><b>${l}</b><div class="tiles">${Array.from({length:10},(_,j)=>{const i=L*10+j;return `<button class="tile${P.done[k][i]?' done':''}" data-k="${k}" data-i="${i}" aria-current="${i===cur}" aria-label="Übung ${i+1}${P.done[k][i]?', geschafft':''}">${P.done[k][i]?'✓':i+1}</button>`}).join('')}</div></div>`).join('');
+  el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>selectEx(k,+b.dataset.i));
+  const L=Math.floor(cur/10);$('#'+k+'Title').innerHTML=`<span><span class="lv lv${L+1}">${LV[L]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`}
+function selectEx(k,i){stopSession();P.cur[k]=i;save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();
+  $('#'+k+'Msg')&&($('#'+k+'Msg').textContent='');resetTuner(k)}
+$('#mNext').onclick=()=>selectEx('m',(P.cur.m+1)%30);$('#hNext').onclick=()=>selectEx('h',(P.cur.h+1)%30);$('#rNext').onclick=()=>selectEx('r',(P.cur.r+1)%30);
+
+/* ================= Notensystem ================= */
+const TREBLE='M2,2 C8,2 9,-8 2,-9 C-6,-10 -10,-1 -7,6 C-4,13 10,13 12,4 C14,-6 6,-13 -1,-19 C-9,-26 -7,-47 1,-52 C7,-55 9,-45 4,-38 C-1,-31 -2,-20 0,-6 L4,22 C5,29 -3,31 -5,26';
+function clefSVG(clef,yB){if(clef==='treble')return `<g transform="translate(32,${yB-12})"><path class="clef" d="${TREBLE}"/><circle class="clefdot" cx="-4" cy="25" r="3.2"/></g>`;
+  return `<g transform="translate(28,${yB-36})"><circle class="clefdot" cx="-3" cy="0" r="4"/><path class="clef" d="M-3,0 C-5,-11 11,-15 15,-4 C19,8 9,22 -6,30"/><circle class="clefdot" cx="22" cy="-5" r="2.2"/><circle class="clefdot" cx="22" cy="5" r="2.2"/></g>`}
+function staffFrame(W,yB,clef){let s='';for(let i=0;i<5;i++)s+=`<line class="sl" x1="8" x2="${W-8}" y1="${yB-i*12}" y2="${yB-i*12}"/>`;
+  return s+`<line class="sl" x1="${W-8}" x2="${W-8}" y1="${yB-48}" y2="${yB}" style="stroke-width:3"/>`+clefSVG(clef,yB)}
+function noteSVG(x,dn,bottom,yB,dur,cls,dx=0){const y=d=>yB-(d-bottom)*6,yy=y(dn),up=dn<bottom+4,X=x+dx;let g='';
+  for(let d=bottom-2;d>=dn;d-=2)g+=`<line x1="${x-13}" x2="${x+13+dx}" y1="${y(d)}" y2="${y(d)}" stroke-width="1.4"/>`;
+  for(let d=bottom+10;d<=dn;d+=2)g+=`<line x1="${x-13}" x2="${x+13+dx}" y1="${y(d)}" y2="${y(d)}" stroke-width="1.4"/>`;
+  if(dur<4)g+=up?`<line x1="${X+7}" x2="${X+7}" y1="${yy}" y2="${yy-38}" stroke-width="1.6"/>`:`<line x1="${X-7}" x2="${X-7}" y1="${yy}" y2="${yy+38}" stroke-width="1.6"/>`;
+  g+=dur>=4?`<ellipse class="open" cx="${X}" cy="${yy}" rx="9" ry="6"/>`:`<ellipse ${dur>=2?'class="open"':''} cx="${X}" cy="${yy}" rx="7.8" ry="5.6" transform="rotate(-20 ${X} ${yy})"/>`;
+  return `<g class="n ${cls}">${g}</g>`}
+function fitSvg(svg,W,H){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.6)+'px';svg.style.minWidth=W>480?Math.round(W*0.68)+'px':''}
+
+/* ================= Melodie ================= */
+let mHL=-1;
+const curMel=()=>MEL[P.cur.m].n.map(n=>({dn:V().base+n.o,d:n.d}));
+function renderMel(){if(!P||!P.voice||VIEW!=='mel')return;const v=V(),notes=curMel(),bottom=v.clef==='bass'?18:30,yB=112,H=176,gap=notes.length>8?48:60,W=Math.max(300,100+notes.length*gap);
+  let s='';const act=SES.kind==='mel';
+  notes.forEach((n,i)=>{if((act&&SES.idx===i)||mHL===i)s+=`<rect class="hl" x="${100+i*gap-22}" y="18" width="44" height="${H-36}" rx="12"/>`});
+  s+=staffFrame(W,yB,v.clef);
+  notes.forEach((n,i)=>{let cls=act?SES.st[i]||'':'';if((act&&SES.idx===i)||mHL===i)cls='cur';const x=100+i*gap;
+    s+=noteSVG(x,n.dn,bottom,yB,n.d,cls);if(P.names)s+=`<text class="nl" x="${x}" y="${H-6}" text-anchor="middle">${midiName(dnMidi(n.dn))}</text>`});
+  fitSvg($('#mStaff'),W,H);$('#mStaff').innerHTML=s}
+$('#mPlay').onclick=()=>{const c=ac(),beat=60/P.bpm,t0=c.currentTime+0.1,notes=curMel();let t=0;
+  notes.forEach((n,i)=>{tone(dnMidi(n.dn),t0+t*beat,n.d*beat*0.92);setTimeout(()=>{mHL=i;renderMel()},(0.1+t*beat)*1000);t+=n.d});
+  setTimeout(()=>{mHL=-1;renderMel()},(0.1+t*beat)*1000);if(SES.kind==='mel')SES.pause=performance.now()+(0.4+t*beat)*1000};
+$('#mSing').onclick=()=>startSession('mel');
+
+/* ================= Harmonie ================= */
+let hHL=false;
+const curHar=()=>{const e=HAR[P.cur.h],b=V().base;return{g:e.g.map(o=>b+o),t:b+e.t}};
+function renderHar(){if(!P||!P.voice||VIEW!=='har')return;const v=V(),e=curHar(),bottom=v.clef==='bass'?18:30,yB=112,H=176,W=330;let s='';
+  const st=SES.kind==='har'?(SES.st[0]||'tgt'):'tgt',cur=(SES.kind==='har'&&!SES.st[0])||hHL;
+  if(cur)s+=`<rect class="hl" x="208" y="18" width="56" height="${H-36}" rx="12"/>`;
+  s+=staffFrame(W,yB,v.clef);const sorted=[...e.g].sort((a,b)=>a-b);
+  sorted.forEach((dn,i)=>{const dx=i>0&&dn-sorted[i-1]===1?18:0;s+=noteSVG(120,dn,bottom,yB,4,'',dx)});
+  s+=`<text x="178" y="${yB-18}" text-anchor="middle" style="font:800 26px Nunito,sans-serif;fill:var(--mut)">+</text>`+noteSVG(236,e.t,bottom,yB,4,st==='hit'?'hit':'tgt');
+  s+=`<text class="nl" x="128" y="${H-6}" text-anchor="middle">${P.names?sorted.map(d=>midiName(dnMidi(d))).join(' '):'Klavier'}</text><text class="nl" x="236" y="${H-6}" text-anchor="middle" style="fill:var(--acc)">${P.names?'du: '+midiName(dnMidi(e.t)):'du singst'}</text>`;
+  fitSvg($('#hStaff'),W,H);$('#hStaff').innerHTML=s}
+$('#hPlay').onclick=()=>{const c=ac(),e=curHar(),t0=c.currentTime+0.05;e.g.forEach(dn=>tone(dnMidi(dn),t0,1.6,0.26));let end=2;
+  if(P.hMode==='hear'){tone(dnMidi(e.t),t0+2,1.4);setTimeout(()=>{hHL=true;renderHar()},2050);setTimeout(()=>{hHL=false;renderHar()},3500);end=3.6}
+  if(SES.kind==='har')SES.pause=performance.now()+end*1000+300};
+$('#hSing').onclick=()=>startSession('har');
+
+/* ================= Sing-Sitzung (Melodie + Harmonie) ================= */
+const TUNER=p=>`<div class="panel tuner"><svg class="gauge" id="${p}Gauge" viewBox="0 0 240 150" aria-hidden="true"></svg><div><div class="big" id="${p}Note">–</div><div class="hint" id="${p}Hint"></div><div class="holdbar" aria-hidden="true"><i id="${p}Hold"></i></div></div>
+<div class="row"><button id="${p}Tone" class="btn small ghost">Ton nochmal hören</button><button id="${p}Skip" class="btn small ghost" hidden>Überspringen</button><button id="${p}Stop" class="btn small ghost" hidden>Stopp</button></div></div>`;
+$('#mTuner').innerHTML=TUNER('m');$('#hTuner').innerHTML=TUNER('h');
+const SES={kind:null,targets:[],idx:0,st:[],hold:0,noteT:0,t0:0,pause:0,skips:0,need:450,drone:null};
+const pre=k=>k==='mel'?'m':'h';
+function resetTuner(k){const p=k==='r'?null:k;if(!p)return;gauge(p,null,null);$('#'+p+'Hint').textContent=p==='m'?'Erst „Vorspielen“, dann „Nachsingen“.':'Erst „Vorspielen“, dann „Dazusingen“.';$('#'+p+'Hint').className='hint';$('#'+p+'Hold').style.width='0'}
+async function startSession(kind){if(!P.voice)return show('voice');if(!await startMic())return;stopSession();const p=pre(kind);
+  SES.kind=kind;SES.targets=kind==='mel'?curMel().map(n=>n.dn):[curHar().t];SES.need=kind==='mel'?450:700;
+  SES.idx=0;SES.st=SES.targets.map(()=>'');SES.hold=0;SES.skips=0;SES.t0=SES.noteT=performance.now();SES.pause=0;hist=[];
+  if(kind==='har'){const e=curHar(),t=ac().currentTime+0.05;
+    if(P.drone){SES.drone=e.g.map(dn=>P.sound==='voice'?voice(dnMidi(dn),t,120,0.18):organ(dnMidi(dn),t,120));SES.pause=performance.now()+700}
+    else{e.g.forEach(dn=>tone(dnMidi(dn),t,1.5,0.26));SES.pause=performance.now()+2000}}
+  $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;kind==='mel'?renderMel():renderHar();startLoop(sesTick)}
+function stopSession(){if(!SES.kind)return;const p=pre(SES.kind);if(SES.drone){SES.drone.forEach(d=>d.stop());SES.drone=null}
+  $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();k==='mel'?renderMel():renderHar()}
+function sesTick(now){if(now-lastTick<40)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
+  if(now<SES.pause){gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Hör zu …';h.className='hint';return}
+  const target=dnMidi(SES.targets[SES.idx]);let c=null;
+  if(m!=null){c=(m-target)*100;if(P.oct)c=((c%1200)+1800)%1200-600}
+  gauge(p,m,c,midiName(target));
+  if(c!=null&&Math.abs(c)<=P.tol)SES.hold+=dt;else SES.hold=Math.max(0,SES.hold-dt*0.6);
+  $('#'+p+'Hold').style.width=Math.min(100,SES.hold/SES.need*100)+'%';$('#'+p+'Skip').hidden=now-SES.noteT<7000;
+  if(SES.hold>=SES.need){SES.st[SES.idx]='hit';nextTarget(now)}}
+function nextTarget(now){const p=pre(SES.kind),kind=SES.kind;SES.hold=0;SES.idx++;hist=[];$('#'+p+'Hold').style.width='0';$('#'+p+'Skip').hidden=true;
+  if(SES.idx>=SES.targets.length){const n=SES.targets.length,sk=SES.skips,sec=((now-SES.t0)/1000).toFixed(1),k=p;
+    const st=[...SES.st];stopSession();SES.st=st;
+    const h=$('#'+p+'Hint');
+    if(!sk){$('#'+p+'Msg').textContent=(n>1?`Super – alle ${n} Töne getroffen!`:'Super – getroffen!')+` (${sec} s)`;h.textContent='Geschafft! Weiter mit „Nächste Übung“.';h.className='hint ok';award(k,P.cur[k])}
+    else{$('#'+p+'Msg').textContent=`${n-sk} von ${n} Tönen getroffen. Versuch es nochmal ohne Überspringen!`;h.textContent='Fast! Probier es gleich nochmal.';h.className='hint'}
+    kind==='mel'?renderMelDone(st):renderHarDone(st);return}
+  SES.noteT=now;SES.pause=now+350;renderMel()}
+function renderMelDone(st){SES.kind='mel';SES.idx=-1;SES.st=st;renderMel();SES.kind=null}
+function renderHarDone(st){SES.kind='har';SES.st=st;renderHar();SES.kind=null}
+function gauge(p,m,c,tn){const T=P?P.tol:30,A=60,cx=120,cy=135,r=105,pt=a=>[cx+r*Math.sin(a*Math.PI/180),cy-r*Math.cos(a*Math.PI/180)];
+  const arc=(a1,a2)=>{const u=pt(a1),q=pt(a2);return `M${u[0].toFixed(1)},${u[1].toFixed(1)} A${r},${r} 0 0 1 ${q[0].toFixed(1)},${q[1].toFixed(1)}`};
+  const z=Math.min(A,T/50*A),ang=c==null?0:Math.max(-A,Math.min(A,c/50*A)),col=c==null?'var(--mut)':Math.abs(c)<=T?'var(--ok)':'var(--acc)';
+  let s=`<path d="${arc(-A,A)}" stroke="var(--line)" stroke-width="16" fill="none" stroke-linecap="round"/><path d="${arc(-z,z)}" stroke="var(--ok)" stroke-opacity=".35" stroke-width="16" fill="none"/>`;
+  [-50,-25,0,25,50].forEach(k=>{const a=k/50*A,u=pt(a),q=[cx+(r-16)*Math.sin(a*Math.PI/180),cy-(r-16)*Math.cos(a*Math.PI/180)];s+=`<line x1="${q[0]}" y1="${q[1]}" x2="${u[0]}" y2="${u[1]}" stroke="var(--mut)" stroke-width="${k?1.2:2}"/>`});
+  s+=`<text x="22" y="146" class="nl">zu tief</text><text x="218" y="146" class="nl" text-anchor="end">zu hoch</text><g transform="rotate(${ang.toFixed(1)} ${cx} ${cy})"><line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-r+4}" stroke="${col}" stroke-width="4" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="8" fill="${col}"/>`;
+  $('#'+p+'Gauge').innerHTML=s;$('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));
+  if(!SES.kind||tn===undefined)return;const h=$('#'+p+'Hint');
+  if(c==null){h.textContent=`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
+  else if(c<-T){h.textContent=c<-100?'Viel zu tief – höher singen ↑':'Etwas höher singen ↑';h.className='hint lo'}
+  else if(c>T){h.textContent=c>100?'Viel zu hoch – tiefer singen ↓':'Etwas tiefer singen ↓';h.className='hint hi'}
+  else{h.textContent='Genau so – halten!';h.className='hint ok'}}
+['m','h'].forEach(p=>{const kind=p==='m'?'mel':'har';
+  $('#'+p+'Stop').onclick=()=>{stopSession();const h=$('#'+p+'Hint');h.textContent='Gestoppt.';h.className='hint'};
+  $('#'+p+'Skip').onclick=()=>{SES.st[SES.idx]='skip';SES.skips++;nextTarget(performance.now())};
+  $('#'+p+'Tone').onclick=()=>{if(!P.voice)return;const dn=SES.kind===kind?SES.targets[SES.idx]:(kind==='mel'?curMel()[0].dn:curHar().t);
+    tone(dnMidi(dn),ac().currentTime+0.05,1);if(SES.kind)SES.pause=performance.now()+1600}});
+
+/* ================= Rhythmus ================= */
+const R={events:[],bars:1,hl:-1,mode:'idle',taps:[],start:0,lat:0};
+function loadRhythm(){if(!P)return;const bars=RHY[P.cur.r].split('|');R.bars=bars.length;R.events=[];
+  bars.forEach((bar,b)=>{let p=0;bar.trim().split(/\s+/).forEach(tk=>{const add=(t,d,x={})=>{R.events.push({t,p,d,b,abs:b*8+p,...x});p+=d};
+    if(tk==='q')add('q',2);else if(tk==='h')add('h',4);else if(tk==='w')add('w',8);else if(tk==='r')add('r',2);
+    else if(tk==='ee'){add('e',1,{beam:1});add('e',1,{beam:2})}else if(tk==='e')add('e',1,{flag:1});else if(tk==='dqe'){add('dq',3);add('e',1,{flag:1})}})});
+  R.mode='idle';R.hl=-1;$('#rRes').hidden=true;renderRhythm()}
+function renderRhythm(){const u=30,X0=74,BW=8*u+18,W=X0+R.bars*BW+6,H=150,Y=82;let s='';const X=e=>X0+e.b*BW+e.p*u+14;
+  s+=`<line class="sl" x1="14" x2="${W-6}" y1="${Y}" y2="${Y}"/><text class="ts" x="44" y="${Y-6}" text-anchor="middle">4</text><text class="ts" x="44" y="${Y+21}" text-anchor="middle">4</text>`;
+  const eighths=R.events.some(e=>e.d%2);
+  for(let b=0;b<R.bars;b++){const bx=X0+(b+1)*BW-4;s+=`<line class="sl" x1="${bx}" x2="${bx}" y1="${Y-16}" y2="${Y+16}" style="stroke-width:${b===R.bars-1?3:1.4}"/>`;
+    for(let p=0;p<8;p++){const x=X0+b*BW+p*u+14;if(p%2===0)s+=`<text class="cnt" x="${x}" y="${H-8}" text-anchor="middle">${p/2+1}</text>`;else if(eighths)s+=`<text class="cnt" x="${x}" y="${H-8}" text-anchor="middle">+</text>`}}
+  R.events.forEach((e,i)=>{const x=X(e);let cls=e.res?e.res.s:'';if(R.hl===i)cls='cur';let g='';
+    if(e.t==='r')g=`<path class="s" d="M${x-3},${Y-20} L${x+5},${Y-10} L${x-2},${Y-1} L${x+6},${Y+9} C${x-1},${Y+5} ${x-5},${Y+11} ${x+1},${Y+17}" fill="none" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    else{g+=`<ellipse cx="${x}" cy="${Y}" rx="7.8" ry="5.6" transform="rotate(-20 ${x} ${Y})" ${e.t==='h'||e.t==='w'?'class="open"':''}/>`;
+      if(e.t!=='w')g+=`<line x1="${x+7}" x2="${x+7}" y1="${Y}" y2="${Y-40}" stroke-width="1.8"/>`;
+      if(e.t==='dq')g+=`<circle class="f" cx="${x+15}" cy="${Y-2}" r="2.6"/>`;
+      if(e.flag)g+=`<path class="s" d="M${x+7},${Y-40} C${x+10},${Y-30} ${x+20},${Y-28} ${x+16},${Y-14}" fill="none" stroke-width="2.4"/>`;
+      if(e.beam===1)g+=`<path class="f" d="M${x+6},${Y-41} L${x+u+8},${Y-41} L${x+u+8},${Y-35} L${x+6},${Y-35}z"/>`}
+    if(e.res&&(e.res.s==='early'||e.res.s==='late'))g+=`<text class="tag f" x="${x}" y="${Y-50}" text-anchor="middle">${e.res.s==='early'?'←':'→'}</text>`;
+    s+=`<g class="n ${cls}">${g}</g>`});
+  const svg=$('#rStaff');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.5)+'px';svg.innerHTML=s}
+const onsets=()=>R.events.filter(e=>e.t!=='r');
+const PADTXT='Hier klopfen<small>Tippen oder Leertaste – nach dem Einzählen „1 2 3 4“</small>';
+function runRhythm(student){if(R.mode!=='idle')return;const c=ac(),beat=60/P.bpm,e8=beat/2,t0=c.currentTime+0.25,start=t0+4*beat,total=R.bars*8*e8,pad=$('#pad');
+  R.events.forEach(e=>delete e.res);R.hl=-1;renderRhythm();$('#rRes').hidden=true;
+  for(let i=0;i<4;i++){click(t0+i*beat,i===0);setTimeout(()=>{pad.innerHTML=`<span class="cd">${i+1}</span><small>einzählen …</small>`},(t0+i*beat-c.currentTime)*1000)}
+  if(P.metro)for(let k=0;k<R.bars*4;k++)click(start+k*beat,k%4===0,student?0.45:0.25);
+  R.mode=student?'rec':'play';
+  if(!student)R.events.forEach((e,i)=>{if(e.t!=='r')wood(start+e.abs*e8);setTimeout(()=>{R.hl=i;renderRhythm()},(start+e.abs*e8-c.currentTime)*1000)});
+  setTimeout(()=>{pad.classList.toggle('rec',student);pad.innerHTML=student?'Jetzt klopfen!<small>Tippen oder Leertaste</small>':'Hör genau zu …<small>Danach: „Ich bin dran“</small>'},(start-c.currentTime)*1000);
+  if(student){R.taps=[];R.start=start;R.lat=c.outputLatency||c.baseLatency||0}
+  setTimeout(()=>{const was=R.mode;R.mode='idle';R.hl=-1;pad.classList.remove('rec');pad.innerHTML=PADTXT;if(was==='rec')evaluate();else renderRhythm()},(start+total+beat*0.6-c.currentTime)*1000)}
+function tap(){const pad=$('#pad');pad.classList.add('flash');setTimeout(()=>pad.classList.remove('flash'),90);if(R.mode==='rec')R.taps.push(ac().currentTime-R.lat-R.start)}
+function evaluate(){const e8=30/P.bpm,win=Math.min(0.22,e8*0.6),used=new Set(),os=onsets(),match={};let ok=0,ea=0,la=0,mi=0;
+  os.forEach(e=>{const T=e.abs*e8;let best=-1,bd=0;R.taps.forEach((t,i)=>{if(used.has(i))return;const d=t-T;if(Math.abs(d)<=win&&(best<0||Math.abs(d)<Math.abs(bd))){best=i;bd=d}});
+    if(best<0){e.res={s:'miss'};mi++;return}used.add(best);const a=Math.abs(bd);e.res={s:a<=0.07?'ok':bd<0?'early':'late'};match[best]=e.res.s;
+    if(e.res.s==='ok')ok++;else if(bd<0)ea++;else la++});
+  const extra=R.taps.length-used.size,n=os.length,score=Math.max(0,Math.round(((ok+0.5*(ea+la))/n-extra*0.05)*100));
+  renderRhythm();$('#rRes').hidden=false;
+  const parts=[`${ok} genau`];if(ea)parts.push(`${ea} zu früh`);if(la)parts.push(`${la} zu spät`);if(mi)parts.push(`${mi} verpasst`);if(extra)parts.push(`${extra} zusätzlich geklopft`);
+  const pass=score>=80;$('#rMsg').textContent=`${score>=90?'Klasse!':pass?'Gut gemacht!':'Noch nicht ganz – ab 80 % zählt die Übung. Hör nochmal genau hin.'} ${score} % · ${parts.join(', ')}`;
+  const total=R.bars*8*e8,W=600,x=t=>20+(t/total)*(W-40);let s=`<line x1="20" x2="${W-20}" y1="35" y2="35" stroke="var(--line)" stroke-width="2"/>`;
+  for(let k=0;k<=R.bars*4;k++)s+=`<line x1="${x(k*2*e8)}" x2="${x(k*2*e8)}" y1="${k%4?29:22}" y2="${k%4?41:48}" stroke="var(--line)" stroke-width="${k%4?1:2}"/>`;
+  os.forEach(e=>{s+=`<circle cx="${x(e.abs*e8)}" cy="35" r="7" fill="none" stroke="var(--mut)" stroke-width="2"/>`});
+  R.taps.forEach((t,i)=>{if(t<-0.3||t>total+0.3)return;const col=!used.has(i)?'var(--acc)':match[i]==='ok'?'var(--ok)':'var(--warn)';s+=`<line x1="${x(t)}" x2="${x(t)}" y1="18" y2="52" stroke="${col}" stroke-width="3" stroke-linecap="round"/>`});
+  $('#tline').innerHTML=s;if(pass)award('r',P.cur.r)}
+$('#rPlay').onclick=()=>runRhythm(false);$('#rGo').onclick=()=>runRhythm(true);
+$('#pad').addEventListener('pointerdown',e=>{e.preventDefault();tap()});
+document.addEventListener('keydown',e=>{if(VIEW!=='rhy'||e.target.tagName==='INPUT')return;if(e.code==='Space'&&!e.repeat){e.preventDefault();tap()}});
+
+/* ================= Erfolge ================= */
+function renderWin(){const st=streak(),wk=ymd(monday()),wf=P.weeks[wk]||0,run=weekRun(),trophies=Object.values(P.weeks).filter(n=>n>=3).length;
+  $('#wTitle').textContent=`Deine Erfolge, ${P.name}`;
+  const K=[['i-flame',P.flames,'Flammen'],['i-streak',st,st===1?'Tag in Folge':'Tage in Folge'],['i-trophy',trophies,'Wochen-Pokale'],['i-crown',P.crowns,'Kronen']];
+  $('#kpis').innerHTML=K.map(([i,n,l])=>`<div class="kpi"><svg viewBox="0 0 24 24"><use href="#${i}"/></svg><div><b>${n}</b><span>${l}</span></div></div>`).join('');
+  const r=P.solved%5;$('#wDots').innerHTML=Array.from({length:5},(_,i)=>`<i class="${i<r?'on':''}"></i>`).join('');
+  $('#wDotsT').textContent=`${r} von 5 Übungen geschafft – noch ${5-r} bis zur nächsten Flamme. Insgesamt ${P.solved} Übungen gelöst.`;
+  $('#wWeek').innerHTML=[0,1,2].map(i=>`<div class="slot${i<wf?' on':''}">${i<wf?'<svg viewBox="0 0 24 24"><use href="#i-flame"/></svg>':''}</div>`).join('')+`<b style="font-size:22px;margin:0 4px">→</b><div class="slot gold${wf>=3?' on':''}"><svg viewBox="0 0 24 24" style="opacity:${wf>=3?1:.3}"><use href="#i-trophy"/></svg></div>`;
+  $('#wWeekT').textContent=wf>=3?'Wochen-Pokal geholt! Jede weitere Flamme zählt trotzdem.':`${wf} von 3 Flammen diese Woche. Noch ${3-wf} bis zum Pokal (die Woche geht von Montag bis Sonntag).`;
+  const k=run%4===0&&run>0?4:run%4;
+  $('#wMonth').innerHTML=[0,1,2,3].map(i=>`<div class="slot gold${i<k?' on':''}"><svg viewBox="0 0 24 24" style="opacity:${i<k?1:.25}"><use href="#i-trophy"/></svg></div>`).join('')+`<b style="font-size:22px;margin:0 4px">→</b><div class="slot gold${k===4?' on':''}"><svg viewBox="0 0 24 24" style="opacity:${k===4?1:.3}"><use href="#i-crown"/></svg></div>`;
+  $('#wMonthT').textContent=k===4?'Krone geholt! Die nächste Runde beginnt.':`${k} von 4 Wochen in Folge mit Wochen-Pokal. Wer eine Woche auslässt, fängt wieder bei 0 an.`;
+  const mo=monday(),names=['Mo','Di','Mi','Do','Fr','Sa','So'],today=ymd(new Date());
+  $('#wDays').innerHTML=names.map((n,i)=>{const d=new Date(mo);d.setDate(mo.getDate()+i);const k2=ymd(d),on=!!P.days[k2];return `<div>${n}<i class="${on?'on':''}${k2===today?' today':''}">${on?'✓':''}</i></div>`}).join('');
+  $('#wDaysT').textContent=`Ein Tag zählt, sobald du mindestens eine Übung schaffst. Aktuell ${st} ${st===1?'Tag':'Tage'} in Folge, dein Rekord: ${Math.max(P.best,st)}.`;
+  $('#wProg').innerHTML=[['Melodie','m'],['Harmonie','h'],['Rhythmus','r']].map(([l,k3])=>{const n=Object.keys(P.done[k3]).length;return `<div>${l}: ${n} von 30<div class="meter"><i style="width:${n/30*100}%"></i></div></div>`}).join('');
+  $('#wProf').textContent=`${P.name} · ${P.age>=18?'18+':P.age} Jahre · ${P.gender==='w'?'Mädchen':P.gender==='m'?'Junge':'keine Angabe'} · Stimmlage ${P.voice?VOICES[P.voice].name:'offen'}`;
+  $('#wDel').textContent='Profil löschen';$('#wDel').dataset.sure=''}
+$('#wSwitch').onclick=()=>{DB.current=null;save();P=null;show('start')};
+$('#wDel').onclick=e=>{const b=e.currentTarget;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='Wirklich löschen? Nochmal tippen';return}
+  DB.profiles=DB.profiles.filter(p=>p.id!==P.id);DB.current=null;P=null;save();show('start')};
+
+/* ================= Start ================= */
+if(DB.current)useProfile(DB.current);
+if(P){header();show(P.voice?'mel':'voice')}else show('start');
+}
+</script>
+</body>
+</html>
