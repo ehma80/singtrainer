@@ -135,10 +135,18 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 .tbtn b{font-size:24px;line-height:1.1}.tbtn span{font-size:15px;opacity:.92;max-width:24ch}.tbtn small{margin-top:auto;font-weight:800;font-size:14px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 10px}
 .tbtn svg{position:absolute;right:-6px;bottom:-8px;width:96px;height:96px;opacity:.22}
 .tb-m{background:#e5484d}.tb-l{background:#1f7a52;grid-column:1/-1;min-height:120px;text-decoration:none}.tb-c{background:#2f3340;grid-column:1/-1;min-height:120px}.tb-a{background:#d9840b}.tb-h{background:#7a5af5}.tb-r{background:#119c9c}
-.sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
 @media(max-width:520px){.sub{grid-template-columns:minmax(0,1fr)}}
 .sub .btn{justify-content:center}
 .back{margin:12px 0 -6px}
+.testbar{position:sticky;top:0;z-index:5;margin:12px 0 0;background:#1b1c20;color:#fff;border-radius:16px;padding:12px 14px;display:grid;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.tb-t{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.tb-t span{opacity:.75;font-weight:700;font-size:14px}
+.tdots{display:flex;gap:6px}.tdots i{flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.22)}.tdots i.on{background:#3ccf7d}.tdots i.cur{background:#ffc53d}
+.testbar .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.view.testing .picker,.view.testing #mNext,.view.testing #hNext,.view.testing #rNext,.view.testing #aNext,.view.testing #aPick{display:none}
+.tbanner{display:grid;gap:10px;border-color:var(--ink);margin-top:8px}.tbanner b{font-size:18px;display:block}.tbanner span{color:var(--mut);font-size:15px}
+.tres{display:grid;gap:10px;margin-top:12px}.tres .cust{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.tres .lvb{display:flex;gap:4px;margin-top:6px}.tres .lvb i{width:26px;height:8px;border-radius:6px;background:var(--line)}.tres .lvb i.on{background:var(--ok)}
 .view.singing .picker,.view.singing>.lead,.view.singing .extitle span .lv,.view.singing .actions,.view.singing #aCount{display:none}
 .view.singing .sheet{scroll-margin-top:10px}
 @media(max-width:600px){.tuner{gap:6px;padding:12px}.gauge{max-width:250px}.big{font-size:40px}.hint{font-size:17px;min-height:2.4em;margin-top:2px}.tuner .row .btn{min-height:42px}
@@ -225,6 +233,8 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
     <div>
       <h1>Willkommen beim Singtrainer!</h1>
       <p class="lead">Trainiere Melodien, Harmonien und Rhythmus. Für jede 5. geschaffte Übung bekommst du eine Flamme. Mit 3 Flammen in einer Woche gibt es einen Pokal, und wer 4 Wochen hintereinander dranbleibt, bekommt die Krone.</p>
+      <div class="row"><button class="btn primary" type="button" id="fSkip">Überspringen – gleich loslegen →</button></div>
+      <p style="color:var(--mut);font-size:14px;margin:8px 0 0">Oder unten kurz ein Profil anlegen – dann passen die Übungen besser zu deiner Stimme.</p>
     </div>
     <svg viewBox="0 0 300 200" aria-hidden="true">
       <rect x="10" y="40" width="280" height="130" rx="18" fill="var(--card)" stroke="var(--line)" stroke-width="3"/>
@@ -252,7 +262,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
       <div style="display:grid;gap:6px;font-weight:800">Du bist …
         <div class="seg" id="fGender"><button type="button" data-g="w">ein Mädchen</button><button type="button" data-g="m">ein Junge</button><button type="button" data-g="x">keine Angabe</button></div></div>
       <p id="fErr" style="color:var(--acc);font-weight:800;margin:0" hidden></p>
-      <div class="row"><button class="btn primary" type="submit" id="fSubmit">Weiter zur Stimmlage</button><button class="btn ghost" type="button" id="fSkip">Überspringen – gleich loslegen</button><button class="btn ghost" type="button" id="fCancel" hidden>Abbrechen</button><button class="btn ghost" type="button" id="fSound">Ton testen</button></div>
+      <div class="row"><button class="btn primary" type="submit" id="fSubmit">Weiter zur Stimmlage</button><button class="btn ghost" type="button" id="fCancel" hidden>Abbrechen</button><button class="btn ghost" type="button" id="fSound">Ton testen</button></div>
       <p style="color:var(--mut);font-size:14px;margin:0">Alter und Geschlecht helfen nur bei der Empfehlung für deine Stimmlage. Alles bleibt auf diesem Gerät.</p>
     </form>
   </div>
@@ -273,6 +283,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
 <section id="v-home" class="view" hidden>
   <h1 id="homeHi">Was möchtest du üben?</h1>
   <p class="lead" id="homeSub"></p>
+  <div class="panel tbanner" id="testBanner" hidden><div><b>Neu hier? Mach den Einstufungstest</b><span>Je 5 kurze Aufgaben zu Melodie, Harmonie, Rhythmus und Auswendig – danach weißt du, mit welcher Stufe du startest.</span></div><div class="row"><button class="btn primary small" data-go="test">Test starten</button><button class="btn ghost small" id="testLater">Nicht jetzt</button></div></div>
   <div class="home">
     <button class="tbtn tb-m" data-go="mel"><b>Melodie&shy;trainer</b><span>Töne und kleine Melodien nachsingen</span><small id="homeM"></small><svg viewBox="0 0 24 24"><path d="M9 18.5a3 3 0 1 1-2-2.8V4l12-2v13.5a3 3 0 1 1-2-2.8V6.3l-8 1.4z" fill="#fff"/></svg></button>
     <button class="tbtn tb-h" data-go="har"><b>Harmonie&shy;trainer</b><span>Intervalle und Akkorde – einen Ton dazusingen</span><small id="homeH"></small><svg viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="8" cy="18" rx="4" ry="3"/><ellipse cx="8" cy="11" rx="4" ry="3"/><ellipse cx="16" cy="6" rx="4" ry="3"/></g></svg></button>
@@ -283,9 +294,22 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
   </div>
   <div class="sub">
     <button class="btn ghost" data-go="win"><svg viewBox="0 0 24 24"><use href="#i-trophy"/></svg>Erfolge</button>
+    <button class="btn ghost" data-go="test">Einstufungstest</button>
     <button class="btn ghost" data-go="voice">Stimmlage ändern</button>
     <button class="btn ghost" id="homeProf">Profil &amp; Einstellungen</button>
   </div>
+</section>
+
+<!-- EINSTUFUNGSTEST -->
+<section id="v-test" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
+  <div id="testIntro">
+    <h1>Einstufungstest</h1>
+    <p class="lead">Finde heraus, wo du startest: 4 Teile – <b>Melodie, Harmonie, Rhythmus und Auswendig</b> – mit je bis zu 5 Aufgaben, die immer schwerer werden. Klappt eine Aufgabe nicht (2 Versuche), geht es mit dem nächsten Teil weiter. Dauer etwa 5–10 Minuten. Am Ende bekommst du einen Vorschlag, in welcher Stufe du bei jedem Trainer beginnst.</p>
+    <div class="panel"><b>So geht's:</b> Bei jeder Aufgabe ganz normal „Vorspielen“ und dann singen bzw. klopfen. Oben siehst du, wo du im Test bist. Du brauchst das Mikrofon – mit Kopfhörern klappt es am besten.</div>
+    <div class="actions"><button class="btn primary" id="testGo">Test starten</button><button class="btn ghost" data-go="home">Später</button></div>
+  </div>
+  <div id="testRes" hidden></div>
 </section>
 
 <!-- STIMMLAGE -->
@@ -306,6 +330,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
 <!-- MELODIE -->
 <section id="v-mel" class="view" hidden>
   <button class="btn small ghost back" data-go="home">← Menü</button>
+  <div class="testbar" hidden></div>
   <div class="titlerow"><h1>Melodietrainer</h1><span class="voicetag vtag"></span></div>
   <div class="picker" id="mPick"></div>
   <div class="extitle" id="mTitle"></div>
@@ -323,6 +348,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
 <!-- HARMONIE -->
 <section id="v-har" class="view" hidden>
   <button class="btn small ghost back" data-go="home">← Menü</button>
+  <div class="testbar" hidden></div>
   <div class="titlerow"><h1>Harmonietrainer</h1><span class="voicetag vtag"></span></div>
   <p class="lead" style="margin-bottom:8px">Die schwarzen Noten werden vorgespielt (Klavier oder Stimme). Du singst die rote Note dazu – erst Intervalle, dann Akkorde.</p>
   <div class="picker" id="hPick"></div>
@@ -345,6 +371,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
 <!-- AUSWENDIG -->
 <section id="v-mem" class="view" hidden>
   <button class="btn small ghost back" data-go="home">← Menü</button>
+  <div class="testbar" hidden></div>
   <div class="titlerow"><h1>Auswendigtrainer</h1><span class="voicetag vtag"></span></div>
   <p class="lead" style="margin-bottom:8px">Hör dir die Melodie so oft an, wie du willst, und schau dir die Noten an. Beim Singen verschwinden die Noten – jetzt zählt dein Gedächtnis.</p>
   <div class="picker" id="aPick"></div>
@@ -402,6 +429,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
 <!-- RHYTHMUS -->
 <section id="v-rhy" class="view" hidden>
   <button class="btn small ghost back" data-go="home">← Menü</button>
+  <div class="testbar" hidden></div>
   <h1>Rhythmustrainer</h1>
   <div class="picker" id="rPick"></div>
   <div class="extitle" id="rTitle"></div>
@@ -549,7 +577,7 @@ function weekRun(){const d=monday();if((P.weeks[ymd(d)]||0)<3)d.setDate(d.getDat
 function award(kind,idx){P.done[kind][idx]=(P.done[kind][idx]||0)+1;P.solved++;const dk=ymd(new Date());P.days[dk]=(P.days[dk]||0)+1;
   const ev=[];if(P.solved%5===0){P.flames++;const wk=ymd(monday());P.weeks[wk]=(P.weeks[wk]||0)+1;ev.push('flame');
     if(P.weeks[wk]===3){ev.push('trophy');let n=0;const d=monday();while((P.weeks[ymd(d)]||0)>=3){n++;d.setDate(d.getDate()-7)}if(n%4===0){P.crowns++;ev.push('crown')}}}
-  P.best=Math.max(P.best,streak());save();header();if(KIND[kind])renderPicker(kind);
+  P.best=Math.max(P.best,streak());save();header();if(KIND[kind])renderPicker(kind);testHook(kind,idx,true);
   if(ev.length)celebrate(ev);else toast(`Richtig! Noch ${5-P.solved%5} ${5-P.solved%5===1?'Übung':'Übungen'} bis zur nächsten Flamme.`);}
 const CEL={flame:['i-flame','Du hast eine Flamme!','5 Übungen geschafft – stark!'],
   trophy:['i-trophy','Wochen-Pokal!','3 Flammen in dieser Woche. Du bist richtig fleißig!'],
@@ -648,15 +676,15 @@ function stopLoop(){loopFn=null}
 
 /* ================= Navigation ================= */
 let VIEW='start';
-function show(v){stopSession();stopLoop();if(v!=='start'&&!P)v='start';if(v!=='start')editing=false;if((v==='mel'||v==='har'||v==='mem')&&!P.voice)v='voice';VIEW=v;
+function show(v){stopSession();stopLoop();if(TEST&&!TEST.nav)testAbort(true);if(v!=='start'&&!P)v='start';if(v!=='start')editing=false;if((v==='mel'||v==='har'||v==='mem')&&!P.voice)v='voice';VIEW=v;
   $$('.view').forEach(s=>s.hidden=s.id!=='v-'+v);
   $('#stats').hidden=!P||(v==='start'&&!editing);$('#hHome').hidden=true;
-  if(v==='home')renderHome();
+  if(v==='home')renderHome();if(v==='test'){$('#testIntro').hidden=false;$('#testRes').hidden=true}
   if(v==='start')renderStart();if(v==='voice')renderVoice();if(v==='mel'){renderPicker('m');renderMel();resetTuner('m')}if(v==='har'){renderPicker('h');renderHar();resetTuner('h')}
-  if(v==='mem'){if(!MEMSRC)renderPicker('a');renderMem();resetTuner('a')}if(v==='cust')renderCust();if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();window.scrollTo(0,0)}
+  if(v==='mem'){if(!MEMSRC)renderPicker('a');renderMem();resetTuner('a')}if(v==='cust')renderCust();if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();testBar();window.scrollTo(0,0)}
 $$('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='mem'&&!b.closest('#v-mem'))MEMSRC=null;if(b.closest('#v-mem')&&MEMSRC){show('cust');return}show(b.dataset.go)});
 $('#hHome').onclick=()=>show('home');$('#hProf').onclick=$('#homeProf').onclick=()=>{editing=true;show('start')};
-function renderHome(){$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
+function renderHome(){$('#testBanner').hidden=!!P.testDone;$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
   const wf=P.weeks[ymd(monday())]||0;$('#homeSub').textContent=`Diese Woche ${wf} von 3 Flammen · ${streak()} ${streak()===1?'Tag':'Tage'} in Folge · Stimmlage ${P.voice?VOICES[P.voice].name:'noch offen'}`;
   [['m','#homeM'],['h','#homeH'],['r','#homeR'],['a','#homeA']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 50 geschafft');$('#homeC').textContent=DB.custom.length?DB.custom.length+(DB.custom.length===1?' Melodie':' Melodien'):'Noch keine – jetzt anlegen'}
 
@@ -732,8 +760,8 @@ const KIND={a:{list:MEM,name:i=>MEM[i].t,levels:MEM_LV},m:{list:MEL,name:i=>MEL[
 const LOCK='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
 const pickL={};
 const lvInfo=k=>{const lv=KIND[k].levels||LV.map(l=>[l,10]),start=[];let acc=0;lv.forEach(([,n])=>{start.push(acc);acc+=n});return{lv,start,total:acc}};
-const isOpen=(k,i)=>!!(P.unlockAll||i===0||P.done[k][i-1]||P.done[k][i]);
-function frontier(k){const t=lvInfo(k).total;for(let i=0;i<t;i++)if(!P.done[k][i])return i;return t-1}
+const isOpen=(k,i)=>!!(P.unlockAll||(TEST&&TEST.k===k&&TEST.idx===i)||i===0||i<=((P.start||{})[k]||0)||P.done[k][i-1]||P.done[k][i]);
+function frontier(k){const t=lvInfo(k).total;for(let i=(P.start||{})[k]||0;i<t;i++)if(!P.done[k][i])return i;for(let i=0;i<t;i++)if(!P.done[k][i])return i;return t-1}
 function levelOf(k,i){const{start}=lvInfo(k);let L=0;start.forEach((st,j)=>{if(i>=st)L=j});return L}
 function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),{lv,start,total}=lvInfo(k);
   if(!isOpen(k,P.cur[k])){P.cur[k]=frontier(k);save()}const cur=P.cur[k],curL=levelOf(k,cur);if(pickL[k]==null)pickL[k]=curL;const PL=pickL[k];
@@ -955,7 +983,7 @@ function nextTarget(now){const p=pre(SES.kind),kind=SES.kind;SES.hold=0;SES.idx+
     const h=$('#'+p+'Hint');
     if(!sk){$('#'+p+'Msg').textContent=(n>1?`Super – alle ${n} Töne getroffen!`:'Super – getroffen!')+` (${sec} s)`;h.textContent=kind==='mem'&&MEMSRC?'Geschafft!':'Geschafft! Weiter mit „Nächste Übung“.';h.className='hint ok';
       if(kind==='mem'&&MEMSRC)award('c',MEMSRC);else if(kind==='mem'&&SES.vis){$('#'+p+'Msg').textContent+=' Jetzt probier es auswendig – das zählt für die Flammen!'}else award(k,P.cur[k])}
-    else{$('#'+p+'Msg').textContent=`${n-sk} von ${n} Tönen getroffen. Versuch es nochmal ohne Überspringen!`;h.textContent='Fast! Probier es gleich nochmal.';h.className='hint'}
+    else{$('#'+p+'Msg').textContent=`${n-sk} von ${n} Tönen getroffen. Versuch es nochmal ohne Überspringen!`;h.textContent='Fast! Probier es gleich nochmal.';h.className='hint';if(!(kind==='mem'&&(MEMSRC||SES.vis)))testHook(k,P.cur[k],false)}
     if(kind==='mem'){SES.lastMem=st;renderMem()}else kind==='mel'?renderMelDone(st):renderHarDone(st);return}
   SES.noteT=now;SES.pause=now+(kind==='mem'?150:350);SES.rel=SES.targets[SES.idx]===SES.targets[SES.idx-1];RENDER[kind]()}
 function renderMelDone(st){SES.kind='mel';SES.idx=-1;SES.st=st;renderMel();SES.kind=null}
@@ -984,6 +1012,37 @@ function gauge(p,m,c,tn){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50;if
   $('#'+p+'Skip').onclick=()=>{SES.st[SES.idx]='skip';SES.skips++;nextTarget(performance.now())};
   $('#'+p+'Tone').onclick=()=>{if(!P.voice)return;const mi=kind==='mem'?curMem().find(n=>!n.rest).m:SES.kind===kind?SES.targets[SES.idx]:(kind==='mel'?dnMidi(curMel()[0].dn):dnMidi(curHar().t));
     tone(mi,ac().currentTime+0.05,1);if(SES.kind)SES.pause=performance.now()+1600}});
+
+/* ================= Einstufungstest ================= */
+const TPARTS=[['m','Melodie','mel'],['h','Harmonie','har'],['r','Rhythmus','rhy'],['a','Auswendig','mem']];
+const TITEMS={m:[2,12,22,32,42],h:[2,12,22,32,42],r:[2,12,22,32,42],a:[2,8,16,24,32]};
+let TEST=null;
+function testStart(){if(!P.voice){P.voice='mittel';save();header()}TEST={pi:0,ii:0,k:null,idx:null,tries:0,res:{},prevCur:{...P.cur}};testGo()}
+function testGo(){const[k,,view]=TPARTS[TEST.pi];TEST.k=k;TEST.idx=TITEMS[k][TEST.ii];TEST.tries=0;MEMSRC=null;P.cur[k]=TEST.idx;pickL[k]=levelOf(k,TEST.idx);
+  TEST.nav=true;show(view);TEST.nav=false;if(k==='a'){memListens=0;SES.lastMem=null}['m','h','a'].forEach(x=>{const e=$('#'+x+'Msg');if(e)e.textContent=''})}
+function testBar(){$$('.testbar').forEach(b=>b.hidden=true);$$('.view').forEach(v=>v.classList.remove('testing'));if(!TEST)return;
+  const[k,name,view]=TPARTS[TEST.pi],v=$('#v-'+view),tb=v.querySelector('.testbar');v.classList.add('testing');tb.hidden=false;
+  tb.innerHTML=`<div class="tb-t"><b>Einstufungstest · ${name}</b><span>Teil ${TEST.pi+1} von 4 · Aufgabe ${TEST.ii+1} von 5${TEST.tries?' · 2. Versuch':''}</span></div>
+    <div class="tdots">${[0,1,2,3,4].map(i=>`<i class="${i<TEST.ii?'on':i===TEST.ii?'cur':''}"></i>`).join('')}</div>${k==='a'?'<span style="font-size:14px;opacity:.85">Für den Test zählt „Auswendig singen“.</span>':''}
+    <div class="row"><button class="btn small" data-t="fail">Schaffe ich nicht – weiter</button><button class="btn small" data-t="stop">Test abbrechen</button></div>`;
+  tb.querySelector('[data-t=fail]').onclick=()=>testResult(false,true);tb.querySelector('[data-t=stop]').onclick=()=>{testAbort(false);show('home')}}
+function testAbort(silent){if(!TEST)return;Object.assign(P.cur,TEST.prevCur);TEST=null;save();testBar();if(!silent)toast('Test abgebrochen – du kannst ihn jederzeit im Menü neu starten.')}
+function testHook(k,idx,ok){if(!TEST||TEST.k!==k||TEST.idx!==idx||TEST.wait)return;if(ok)return testResult(true);TEST.tries++;
+  if(TEST.tries>=2)testResult(false);else{testBar();toast('Noch ein Versuch – du schaffst das!')}}
+function testResult(ok,now){const k=TEST.k;(TEST.res[k]=TEST.res[k]||[]).push(ok);TEST.wait=true;
+  const next=()=>{if(!TEST)return;TEST.wait=false;stopSession();if(ok&&TEST.ii<4){TEST.ii++;testGo()}else if(TEST.pi<3){TEST.pi++;TEST.ii=0;testGo()}else testDone()};
+  if(now)next();else{toast(ok?'Richtig! Weiter zur nächsten Testaufgabe …':'Okay – weiter mit dem nächsten Teil.');setTimeout(next,1800)}}
+function testDone(){const res=TEST.res,prev=TEST.prevCur;TEST=null;testBar();const sug={};
+  TPARTS.forEach(([k])=>{const passes=(res[k]||[]).filter(Boolean).length;sug[k]=Math.min(passes,4)});
+  P.testDone=true;Object.assign(P.cur,prev);save();show('test');$('#testIntro').hidden=true;const box=$('#testRes');box.hidden=false;
+  box.innerHTML=`<h1>Dein Ergebnis</h1><p class="lead">So weit bist du gekommen. Mit einem Haken startest du direkt in der vorgeschlagenen Stufe – die Stufen davor bleiben frei, falls du sie trotzdem üben willst.</p>
+    <div class="tres">${TPARTS.map(([k,name])=>{const{lv}=lvInfo(k),L=sug[k],passes=(res[k]||[]).filter(Boolean).length;
+      return `<label class="cust"><div><b>${name}</b><div class="meta">${passes} von 5 Aufgaben geschafft · Vorschlag: Start bei <b>${lv[L][0]}</b></div><div class="lvb">${[0,1,2,3,4].map(i=>`<i class="${i<passes?'on':''}"></i>`).join('')}</div></div><input type="checkbox" class="tchk" data-k="${k}" data-l="${L}" ${L>0?'checked':''} style="width:26px;height:26px;accent-color:var(--ok)"></label>`}).join('')}</div>
+    <div class="actions"><button class="btn primary" id="testApply">Vorschläge übernehmen</button><button class="btn ghost" id="testNo">Nein danke, ich fange vorne an</button></div>`;
+  $('#testApply').onclick=()=>{P.start=P.start||{};let n=0;$$('.tchk').forEach(c=>{const k=c.dataset.k,L=+c.dataset.l,{start}=lvInfo(k);if(c.checked&&L>0){P.start[k]=start[L];P.cur[k]=start[L];pickL[k]=L;n++}});save();
+    toast(n?'Übernommen – deine Start-Stufen sind freigeschaltet.':'Alles klar – du startest überall vorne.');show('home')};
+  $('#testNo').onclick=()=>show('home')}
+$('#testGo').onclick=testStart;$('#testLater').onclick=()=>{P.testDone='later';save();renderHome()};
 
 /* ================= Eigene Melodien: Ansicht ================= */
 let cEditId=null,cHL=-1;
@@ -1077,7 +1136,7 @@ function evaluate(){const beat=60/P.bpm,os=onsets(),used=new Set(),match={};let 
   for(let k=0;k<=R.bars*4;k++)s+=`<line x1="${x(k*beat)}" x2="${x(k*beat)}" y1="${k%4?29:22}" y2="${k%4?41:48}" stroke="var(--line)" stroke-width="${k%4?1:2}"/>`;
   os.forEach(e=>{s+=`<circle cx="${x(e.abs*beat)}" cy="35" r="${gap<0.4?4:7}" fill="none" stroke="var(--mut)" stroke-width="2"/>`});
   R.taps.forEach((t,i)=>{if(t<-0.3||t>total+0.3)return;const col=!used.has(i)?'var(--acc)':match[i]==='ok'?'var(--ok)':'var(--warn)';s+=`<line x1="${x(t)}" x2="${x(t)}" y1="18" y2="52" stroke="${col}" stroke-width="3" stroke-linecap="round"/>`});
-  $('#tline').innerHTML=s;if(pass)award('r',P.cur.r)}
+  $('#tline').innerHTML=s;if(pass)award('r',P.cur.r);else testHook('r',P.cur.r,false)}
 $('#rPlay').onclick=()=>runRhythm(false);$('#rGo').onclick=()=>runRhythm(true);
 $('#pad').addEventListener('pointerdown',e=>{e.preventDefault();tap()});
 document.addEventListener('keydown',e=>{if(VIEW!=='rhy'||e.target.tagName==='INPUT')return;if(e.code==='Space'&&!e.repeat){e.preventDefault();tap()}});
