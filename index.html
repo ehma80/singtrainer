@@ -99,6 +99,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .cents{font-size:20px;font-weight:800;color:var(--mut);margin-top:4px;font-variant-numeric:tabular-nums}.cents.ok{color:var(--ok)}.cents.off{color:var(--acc)}
 .hint{font-size:18px;font-weight:700;margin-top:6px;min-height:2.6em}
 .hint.ok{color:var(--ok)}.hint.lo,.hint.hi{color:var(--acc)}
+.micl{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;font-weight:800;color:var(--mut)}.micl i{flex:1;height:6px;border-radius:6px;background:var(--line);overflow:hidden}.micl b{display:block;height:100%;width:0;background:var(--mittel);transition:width .06s}
 .holdbar{height:10px;border-radius:10px;background:var(--line);overflow:hidden;margin-top:8px}
 .holdbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
 .msg{font-weight:800;font-size:18px;min-height:1.5em;margin:12px 0 0}
@@ -610,23 +611,30 @@ function wood(t){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='tr
 /* ================= Mikrofon + Tonhöhe (YIN) ================= */
 let analyser=null,buf=null,hist=[],lastSeen=0;
 async function startMic(){ac();if(analyser)return true;setSession('play-and-record');
-  try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    const src=ctx.createMediaStreamSource(st);analyser=ctx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);buf=new Float32Array(analyser.fftSize);$('#micErr').hidden=true;return true;
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:true}});
+    /* Safari verarbeitet das Mikrofon nur, wenn die Kette bis zum Ausgang reicht – daher stumm (Lautstärke 0) an den Ausgang anschließen */
+    const src=ctx.createMediaStreamSource(st),hp=ctx.createBiquadFilter(),mute=ctx.createGain();hp.type='highpass';hp.frequency.value=60;mute.gain.value=0;
+    analyser=ctx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=0;src.connect(hp);hp.connect(analyser);analyser.connect(mute);mute.connect(ctx.destination);
+    buf=new Float32Array(analyser.fftSize);dsBuf=new Float32Array(analyser.fftSize>>1);if(ctx.state!=='running')ctx.resume().catch(()=>{});$('#micErr').hidden=true;return true;
   }catch(e){const el=$('#micErr');el.hidden=false;
     el.innerHTML='<b>Kein Zugriff aufs Mikrofon.</b> Erlaube den Mikrofonzugriff, wenn der Browser fragt. Auf Handy und Tablet braucht die App eine https-Adresse; am PC geht auch die lokal geöffnete Datei in Chrome oder Edge.';
     el.scrollIntoView({behavior:'smooth',block:'center'});return false}}
-function yin(b,sr){let r=0;for(let i=0;i<b.length;i++)r+=b[i]*b[i];if(Math.sqrt(r/b.length)<0.012)return null;
+function yin(b,sr){let r=0;for(let i=0;i<b.length;i++)r+=b[i]*b[i];if(Math.sqrt(r/b.length)<0.0035)return null;
   const W=b.length>>1,tMin=Math.floor(sr/1000),tMax=Math.min(W-1,Math.floor(sr/70)),d=new Float32Array(tMax+1);
   for(let t=1;t<=tMax;t++){let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}d[t]=s}
   let run=0;d[0]=1;for(let t=1;t<=tMax;t++){run+=d[t];d[t]=run?d[t]*t/run:1}
-  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.12){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
+  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.15){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
   if(tau<0)return null;let bt=tau;if(tau>1&&tau<tMax){const a=d[tau-1],c=d[tau],e=d[tau+1],den=a+e-2*c;if(den)bt=tau+(a-e)/(2*den)}return sr/bt}
 /* Tonhöhe: Median gegen Ausreißer (z. B. Oktavsprünge), danach sanfte Glättung für eine ruhige, genaue Nadel */
-let sm=null;const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[s.length>>1]};
-function readPitch(){analyser.getFloatTimeDomainData(buf);const f=yin(buf,ctx.sampleRate),now=performance.now();
-  if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>7)hist.shift();lastSeen=now}else if(now-lastSeen>250)hist=[];
-  if(!hist.length){sm=null;return null}const md=med(hist);
-  if(sm==null||Math.abs(md-sm)>0.6)sm=md;else sm+=0.3*(md-sm);return sm}
+/* Tonhöhe: auf ~24 kHz verkleinern (4× schneller), Median gegen Ausreißer, leichte Glättung für schnelle, ruhige Nadel */
+let sm=null,dsBuf=null,micLevel=0,quietSince=0;const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[s.length>>1]};
+function readPitch(){if(ctx.state!=='running')ctx.resume().catch(()=>{});analyser.getFloatTimeDomainData(buf);let sr=ctx.sampleRate,data=buf;
+  let r=0;for(let i=0;i<buf.length;i++)r+=buf[i]*buf[i];micLevel=Math.sqrt(r/buf.length);
+  if(sr>32000){for(let i=0;i<dsBuf.length;i++)dsBuf[i]=(buf[2*i]+buf[2*i+1])*0.5;data=dsBuf;sr/=2}
+  const f=yin(data,sr),now=performance.now();if(micLevel<0.0035){if(!quietSince)quietSince=now}else quietSince=0;
+  if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>5)hist.shift();lastSeen=now}else if(now-lastSeen>200)hist=[];
+  if(!hist.length){sm=null;return null}const md=med(hist.length>=3?hist.slice(-3):hist);
+  if(sm==null||Math.abs(md-sm)>0.5)sm=md;else sm+=0.5*(md-sm);return sm}
 let loopFn=null,lastTick=0;
 function loop(t){if(!loopFn)return;loopFn(t);requestAnimationFrame(loop)}
 function startLoop(fn){loopFn=fn;lastTick=performance.now();requestAnimationFrame(loop)}
@@ -908,7 +916,7 @@ $('#hPlay').onclick=()=>{const c=ac(),e=curHar(),t0=c.currentTime+0.05;e.g.forEa
 $('#hSing').onclick=()=>startSession('har');
 
 /* ================= Sing-Sitzung (Melodie + Harmonie) ================= */
-const TUNER=p=>`<div class="panel tuner"><svg class="gauge" id="${p}Gauge" viewBox="0 0 240 150" aria-hidden="true"></svg><div><div class="big" id="${p}Note">–</div><div class="cents" id="${p}Cents">&nbsp;</div><div class="hint" id="${p}Hint"></div><div class="holdbar" aria-hidden="true"><i id="${p}Hold"></i></div></div>
+const TUNER=p=>`<div class="panel tuner"><svg class="gauge" id="${p}Gauge" viewBox="0 0 240 150" aria-hidden="true"></svg><div><div class="big" id="${p}Note">–</div><div class="cents" id="${p}Cents">&nbsp;</div><div class="hint" id="${p}Hint"></div><div class="holdbar" aria-hidden="true"><i id="${p}Hold"></i></div><div class="micl" aria-hidden="true"><span>Mikro</span><i><b id="${p}Lvl"></b></i></div></div>
 <div class="row"><button id="${p}Tone" class="btn small ghost">Ton nochmal hören</button><button id="${p}Skip" class="btn small ghost" hidden>Überspringen</button><button id="${p}Stop" class="btn small ghost" hidden>Stopp</button></div></div>`;
 $('#mTuner').innerHTML=TUNER('m');$('#hTuner').innerHTML=TUNER('h');$('#aTuner').innerHTML=TUNER('a');$('#aTone').textContent='Anfangston hören';
 const SES={kind:null,targets:[],idx:0,st:[],hold:0,noteT:0,t0:0,pause:0,skips:0,need:450,drone:null};
@@ -923,7 +931,7 @@ async function startSession(kind,opt={}){if(!P.voice)return show('voice');if(!aw
   $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;if(kind==='mem')$('#aSingVis').disabled=true;RENDER[kind]();startLoop(sesTick)}
 function stopSession(){if(!SES.kind)return;const p=pre(SES.kind);if(SES.drone){SES.drone.forEach(d=>d.stop());SES.drone=null}
   $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();RENDER[k]()}
-function sesTick(now){if(now-lastTick<30)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
+function sesTick(now){if(now-lastTick<25)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
   if(now<SES.pause){gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Hör zu …';h.className='hint';return}
   const target=SES.targets[SES.idx];let c=null;
   if(SES.rel){if(m==null||now-SES.noteT>700)SES.rel=false;else{gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Gleicher Ton nochmal – kurz neu ansetzen';h.className='hint';return}}
@@ -954,10 +962,11 @@ function gaugeBuild(p){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50,A=60
 function gauge(p,m,c,tn){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50;if(el.dataset.k!==T+'')gaugeBuild(p);
   const ang=c==null?0:Math.max(-62,Math.min(62,c/R*60)),col=c==null?'var(--mut)':Math.abs(c)<=T?'var(--ok)':'var(--acc)',nd=$('#'+p+'Needle');
   nd.style.transform=`rotate(${ang.toFixed(1)}deg)`;nd.setAttribute('stroke',col);nd.setAttribute('fill',col);$('#'+p+'Hub').setAttribute('fill',col);
-  $('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));
+  $('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));const lv=$('#'+p+'Lvl');if(lv)lv.style.width=Math.min(100,Math.sqrt(micLevel)*320)+'%';
   const ce=$('#'+p+'Cents');if(c==null){ce.innerHTML='&nbsp;';ce.className='cents'}else{const v=Math.round(c);ce.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)+' Cent';ce.className='cents '+(Math.abs(c)<=T?'ok':'off')}
   if(!SES.kind||tn===undefined)return;const h=$('#'+p+'Hint');
-  if(c==null){h.textContent=tn==null?`Sing weiter – Ton ${SES.idx+1} von ${SES.targets.length}`:`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
+  if(c==null&&quietSince&&performance.now()-quietSince>1500){h.textContent='Ich höre dich kaum – näher ans Mikrofon oder lauter singen';h.className='hint'}
+  else if(c==null){h.textContent=tn==null?`Sing weiter – Ton ${SES.idx+1} von ${SES.targets.length}`:`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
   else if(c<-T){h.textContent=c<-100?'Viel zu tief – höher singen ↑':'Etwas höher singen ↑';h.className='hint lo'}
   else if(c>T){h.textContent=c>100?'Viel zu hoch – tiefer singen ↓':'Etwas tiefer singen ↓';h.className='hint hi'}
   else{h.textContent='Genau so – halten!';h.className='hint ok'}}
