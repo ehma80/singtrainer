@@ -660,11 +660,13 @@ async function startMic(){ac();if(analyser)return true;setSession('play-and-reco
   }catch(e){const el=$('#micErr');el.hidden=false;
     el.innerHTML='<b>Kein Zugriff aufs Mikrofon.</b> Erlaube den Mikrofonzugriff, wenn der Browser fragt. Auf Handy und Tablet braucht die App eine https-Adresse; am PC geht auch die lokal geöffnete Datei in Chrome oder Edge.';
     el.scrollIntoView({behavior:'smooth',block:'center'});return false}}
-function yin(b,sr){let r=0;for(let i=0;i<b.length;i++)r+=b[i]*b[i];if(Math.sqrt(r/b.length)<0.0035)return null;
+/* Mikrofon-Empfindlichkeit: Schwelle für die Lautstärke und wie „sauber“ ein Ton sein muss */
+const SENS={normal:{g:0.003,y:0.15},hoch:{g:0.0011,y:0.18},max:{g:0.0005,y:0.22}};const sens=()=>SENS[(P&&P.micSens)||'hoch'];let noiseFloor=0.0006;
+function yin(b,sr,gate=0.003,thr=0.15){let r=0;for(let i=0;i<b.length;i++)r+=b[i]*b[i];if(Math.sqrt(r/b.length)<gate)return null;
   const W=b.length>>1,tMin=Math.floor(sr/1000),tMax=Math.min(W-1,Math.floor(sr/70)),d=new Float32Array(tMax+1);
   for(let t=1;t<=tMax;t++){let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}d[t]=s}
   let run=0;d[0]=1;for(let t=1;t<=tMax;t++){run+=d[t];d[t]=run?d[t]*t/run:1}
-  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.15){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
+  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<thr){while(t<tMax&&d[t+1]<d[t])t++;tau=t;break}}
   if(tau<0)return null;let bt=tau;if(tau>1&&tau<tMax){const a=d[tau-1],c=d[tau],e=d[tau+1],den=a+e-2*c;if(den)bt=tau+(a-e)/(2*den)}return sr/bt}
 /* Tonhöhe: Median gegen Ausreißer (z. B. Oktavsprünge), danach sanfte Glättung für eine ruhige, genaue Nadel */
 /* Tonhöhe: auf ~24 kHz verkleinern (4× schneller), Median gegen Ausreißer, leichte Glättung für schnelle, ruhige Nadel */
@@ -672,7 +674,9 @@ let sm=null,dsBuf=null,micLevel=0,quietSince=0;const med=a=>{const s=[...a].sort
 function readPitch(){if(ctx.state!=='running')ctx.resume().catch(()=>{});analyser.getFloatTimeDomainData(buf);let sr=ctx.sampleRate,data=buf;
   let r=0;for(let i=0;i<buf.length;i++)r+=buf[i]*buf[i];micLevel=Math.sqrt(r/buf.length);
   if(sr>32000){for(let i=0;i<dsBuf.length;i++)dsBuf[i]=(buf[2*i]+buf[2*i+1])*0.5;data=dsBuf;sr/=2}
-  const f=yin(data,sr),now=performance.now();if(micLevel<0.0035){if(!quietSince)quietSince=now}else quietSince=0;
+  const S=sens(),gate=Math.max(S.g,noiseFloor*2.2),f=yin(data,sr,gate,S.y),now=performance.now();
+  if(!f&&micLevel<0.01)noiseFloor=noiseFloor*0.97+micLevel*0.03; /* Raumgeräusch mitlernen */
+  if(micLevel<gate){if(!quietSince)quietSince=now}else quietSince=0;
   if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>5)hist.shift();lastSeen=now}else if(now-lastSeen>200)hist=[];
   if(!hist.length){sm=null;return null}const md=med(hist.length>=3?hist.slice(-3):hist);
   if(sm==null||Math.abs(md-sm)>0.5)sm=md;else sm+=0.5*(md-sm);return sm}
@@ -750,7 +754,8 @@ $('#chkBtn').onclick=async()=>{if(!await startMic())return;const vals=[],end=per
     $('#chkTake').onclick=()=>{P.voice=id;save();header();show('home')}})};
 
 /* ================= Einstellungen (gemeinsam) ================= */
-const SSET=`<div>Klang der Vorgabe<div class="seg sSound"><button data-s="piano">Klavier</button><button data-s="voice">Stimme „doo“</button></div></div>
+const SSET=`<div>Mikrofon-Empfindlichkeit<div class="seg sSens"><button data-m="normal">Normal</button><button data-m="hoch">Hoch</button><button data-m="max">Sehr hoch</button></div><span style="font-weight:600;font-size:13px;color:var(--mut)">Mit mehr Abstand zum Handy: „Hoch“ oder „Sehr hoch“. Bei lauter Umgebung: „Normal“.</span></div>
+<div>Klang der Vorgabe<div class="seg sSound"><button data-s="piano">Klavier</button><button data-s="voice">Stimme „doo“</button></div></div>
 <label>Genauigkeit<select class="sTol"><option value="50">Leicht (±50 Cent)</option><option value="30">Mittel (±30 Cent)</option><option value="15">Streng (±15 Cent)</option><option value="10">Profi (±10 Cent)</option></select></label>
 <div>Tempo<div class="tv"><input type="range" class="bpm" min="40" max="160" step="5" aria-label="Tempo"><output class="bpmOut"></output></div></div>
 <label class="chk"><input type="checkbox" class="sOct">Oktave egal (jede Oktave zählt)</label><label class="chk"><input type="checkbox" class="sNames">Notennamen zeigen</label>`;
@@ -758,8 +763,9 @@ $$('.sset').forEach(e=>e.innerHTML=SSET);
 const tempoWord=b=>b<66?'langsam':b<100?'mittel':'schnell';
 function syncSettings(){if(!P)return;$$('.sTol').forEach(s=>s.value=P.tol);$$('.sOct').forEach(c=>c.checked=P.oct);$$('.sNames').forEach(c=>c.checked=P.names);
   $$('.bpm').forEach(i=>i.value=P.bpm);$$('.bpmOut').forEach(o=>o.textContent='♩ = '+P.bpm+' · '+tempoWord(P.bpm));$('#metro').checked=P.metro;$('#hDrone').checked=P.drone;
-  $$('#hMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===P.hMode));$$('#aMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===(P.memMode||'both')));$$('.sSound button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===(P.sound||'piano')))}
+  $$('#hMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===P.hMode));$$('#aMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===(P.memMode||'both')));$$('.sSens button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===(P.micSens||'hoch')));$$('.sSound button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===(P.sound||'piano')))}
 $$('.sSound button').forEach(b=>b.onclick=()=>{P.sound=b.dataset.s;save();syncSettings();tone(P.voice?dnMidi(V().base+2):64,ac().currentTime+0.05,0.8)});
+$$('.sSens button').forEach(b=>b.onclick=()=>{P.micSens=b.dataset.m;noiseFloor=0.0006;save();syncSettings();toast('Mikrofon-Empfindlichkeit: '+b.textContent)});
 $$('.sTol').forEach(s=>s.onchange=()=>{P.tol=+s.value;save();syncSettings()});
 $$('.sOct').forEach(c=>c.onchange=()=>{P.oct=c.checked;save();syncSettings()});
 $$('.sNames').forEach(c=>c.onchange=()=>{P.names=c.checked;save();syncSettings();renderMel();renderHar();renderMem()});
@@ -1015,7 +1021,7 @@ function gauge(p,m,c,tn){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50;if
   $('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));const lv=$('#'+p+'Lvl');if(lv)lv.style.width=Math.min(100,Math.sqrt(micLevel)*320)+'%';
   const ce=$('#'+p+'Cents');if(c==null){ce.innerHTML='&nbsp;';ce.className='cents'}else{const v=Math.round(c);ce.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)+' Cent';ce.className='cents '+(Math.abs(c)<=T?'ok':'off')}
   if(!SES.kind||tn===undefined)return;const h=$('#'+p+'Hint');
-  if(c==null&&quietSince&&performance.now()-quietSince>1500){h.textContent='Ich höre dich kaum – näher ans Mikrofon oder lauter singen';h.className='hint'}
+  if(c==null&&quietSince&&performance.now()-quietSince>3000){h.textContent=(P.micSens==='max'?'Ich höre dich kaum – sing etwas lauter':'Ich höre dich kaum – sing lauter oder stell die Mikrofon-Empfindlichkeit höher (unten)');h.className='hint'}
   else if(c==null){h.textContent=tn==null?`Sing weiter – Ton ${SES.idx+1} von ${SES.targets.length}`:`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
   else if(c<-T){h.textContent=c<-100?'Viel zu tief – höher singen ↑':'Etwas höher singen ↑';h.className='hint lo'}
   else if(c>T){h.textContent=c>100?'Viel zu hoch – tiefer singen ↓':'Etwas tiefer singen ↓';h.className='hint hi'}
