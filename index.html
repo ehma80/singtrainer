@@ -134,7 +134,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 .tbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
 .tbtn b{font-size:24px;line-height:1.1}.tbtn span{font-size:15px;opacity:.92;max-width:24ch}.tbtn small{margin-top:auto;font-weight:800;font-size:14px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 10px}
 .tbtn svg{position:absolute;right:-6px;bottom:-8px;width:96px;height:96px;opacity:.22}
-.tb-m{background:#e5484d}.tb-l{background:#1f7a52;grid-column:1/-1;min-height:120px;text-decoration:none}.tb-c{background:#2f3340;grid-column:1/-1;min-height:120px}.tb-a{background:#d9840b}.tb-h{background:#7a5af5}.tb-r{background:#119c9c}
+.tb-m{background:#e5484d}.tb-l{background:#1f7a52;grid-column:1/-1;min-height:120px;text-decoration:none}.tl-main{display:grid;gap:6px;color:#fff;text-decoration:none;position:relative;z-index:1}.songchips{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1;margin:4px 0 2px}.songchip{display:grid;background:rgba(255,255,255,.2);color:#fff;text-decoration:none;font-weight:800;font-size:16px;border-radius:12px;padding:8px 12px;min-height:44px}.songchip small{all:unset;font-size:12px;font-weight:600;opacity:.85}.songchip:active{background:rgba(255,255,255,.32)}.tl-load{opacity:.8;font-weight:600;background:none!important}.tb-c{background:#2f3340;grid-column:1/-1;min-height:120px}.tb-a{background:#d9840b}.tb-h{background:#7a5af5}.tb-r{background:#119c9c}
 .sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
 @media(max-width:520px){.sub{grid-template-columns:minmax(0,1fr)}}
 .sub .btn{justify-content:center}
@@ -290,7 +290,7 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
     <button class="tbtn tb-h" data-go="har"><b>Harmonie&shy;trainer</b><span>Intervalle und Akkorde – einen Ton dazusingen</span><small id="homeH"></small><svg viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="8" cy="18" rx="4" ry="3"/><ellipse cx="8" cy="11" rx="4" ry="3"/><ellipse cx="16" cy="6" rx="4" ry="3"/></g></svg></button>
     <button class="tbtn tb-a" data-go="mem"><b>Auswendig&shy;trainer</b><span>Anhören, ansehen, merken – dann ohne Noten singen</span><small id="homeA"></small><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3C7.6 3 4 6.4 4 10.6c0 2.4 1.2 4.6 3.1 6V21h5v-2.2h2.3a2.6 2.6 0 0 0 2.6-2.6V14h2.2L17.9 10C17.6 6.1 15.1 3 12 3z"/></svg></button>
     <button class="tbtn tb-r" data-go="rhy"><b>Rhythmus&shy;trainer</b><span>Rhythmen hören und nachklopfen</span><small id="homeR"></small><svg viewBox="0 0 24 24"><g fill="#fff"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/></g></svg></button>
-    <a class="tbtn tb-l" id="homeSongs" href="https://lieder.grammarbox.de/"><b>Unsere Lieder</b><span>Unsere Chorstücke: jede Stimme mit Text vorgesungen – zum Mitsingen und Üben</span><small>Mit Chor-Passwort</small><svg viewBox="0 0 24 24"><g fill="#fff"><circle cx="7" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><circle cx="12" cy="6" r="3"/><path d="M2 20c0-3.3 2.2-6 5-6s5 2.7 5 6zM12 20c0-3.3 2.2-6 5-6s5 2.7 5 6z"/></g></svg></a>
+    <div class="tbtn tb-l" id="homeSongs"><a class="tl-main" href="https://lieder.grammarbox.de/"><b>Unsere Lieder</b><span>Unsere Chorstücke: jede Stimme mit Text vorgesungen – tippe auf ein Lied</span></a><div class="songchips" id="songChips"><small class="tl-load">Lade Lieder …</small></div><small>Mit Chor-Passwort</small><svg viewBox="0 0 24 24"><g fill="#fff"><circle cx="7" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><circle cx="12" cy="6" r="3"/><path d="M2 20c0-3.3 2.2-6 5-6s5 2.7 5 6zM12 20c0-3.3 2.2-6 5-6s5 2.7 5 6z"/></g></svg></div>
     <button class="tbtn tb-c" data-go="cust"><b>Eigene Melodien</b><span>Von der Lehrkraft eingetragen oder als MusicXML hochgeladen</span><small id="homeC"></small><svg viewBox="0 0 24 24"><path fill="#fff" d="M5 3h10l4 4v14H5zM14 3v5h5M9 17.5a1.8 1.8 0 1 1-1.2-1.7V10l6-1v6.5a1.8 1.8 0 1 1-1.2-1.7v-3.2l-3.6.6z"/></svg></button>
   </div>
   <div class="sub">
@@ -691,7 +691,13 @@ function show(v){stopSession();stopLoop();if(TEST&&!TEST.nav)testAbort(true);if(
   if(v==='mem'){if(!MEMSRC)renderPicker('a');renderMem();resetTuner('a')}if(v==='cust')renderCust();if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();testBar();window.scrollTo(0,0)}
 $$('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='mem'&&!b.closest('#v-mem'))MEMSRC=null;if(b.closest('#v-mem')&&MEMSRC){show('cust');return}show(b.dataset.go)});
 $('#hHome').onclick=()=>show('home');$('#hProf').onclick=$('#homeProf').onclick=()=>{editing=true;show('start')};
-function renderHome(){$('#testBanner').hidden=!!P.testDone;$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
+const SONGS_URL='https://lieder.grammarbox.de/';
+function renderSongChips(list){const el=$('#songChips');if(!el)return;if(!list||!list.length){el.innerHTML='<a class="songchip" href="'+SONGS_URL+'">Alle Lieder öffnen →</a>';return}
+  el.innerHTML=list.map(x=>`<a class="songchip" href="${SONGS_URL}#${encodeURIComponent(x.id)}">${esc(x.title)}<small>${Array.isArray(x.voices)?x.voices.length+' Stimmen':''}</small></a>`).join('')}
+let songsLoaded=false;
+function loadSongs(){try{const c=JSON.parse(localStorage.getItem('chorTitles')||'null');if(c)renderSongChips(c)}catch(e){}
+  if(songsLoaded)return;songsLoaded=true;fetch(SONGS_URL+'titles.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(list=>{if(!Array.isArray(list))return;try{localStorage.setItem('chorTitles',JSON.stringify(list))}catch(e){}renderSongChips(list)}).catch(()=>{if(!$('#songChips .songchip'))renderSongChips(null)})}
+function renderHome(){loadSongs();$('#testBanner').hidden=!!P.testDone;$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
   const wf=P.weeks[ymd(monday())]||0;$('#homeSub').textContent=`Diese Woche ${wf} von 3 Flammen · ${streak()} ${streak()===1?'Tag':'Tage'} in Folge · Stimmlage ${P.voice?VOICES[P.voice].name:'noch offen'}`;
   [['m','#homeM'],['h','#homeH'],['r','#homeR'],['a','#homeA']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 50 geschafft');$('#homeC').textContent=DB.custom.length?DB.custom.length+(DB.custom.length===1?' Melodie':' Melodien'):'Noch keine – jetzt anlegen'}
 
