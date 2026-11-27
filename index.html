@@ -117,17 +117,19 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .note{font-size:13px;color:var(--mut);margin-top:22px}
 /* Start */
-.home{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+.home{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:8px}
 @media(max-width:700px){.home{grid-template-columns:minmax(0,1fr)}}
 .tbtn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:0;border-radius:22px;padding:20px;min-height:150px;color:#fff;cursor:pointer;font:inherit;position:relative;overflow:hidden;box-shadow:0 4px 0 rgba(0,0,0,.18)}
 .tbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
 .tbtn b{font-size:24px;line-height:1.1}.tbtn span{font-size:15px;opacity:.92;max-width:24ch}.tbtn small{margin-top:auto;font-weight:800;font-size:14px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 10px}
 .tbtn svg{position:absolute;right:-6px;bottom:-8px;width:96px;height:96px;opacity:.22}
-.tb-m{background:#e5484d}.tb-h{background:#7a5af5}.tb-r{background:#119c9c}
+.tb-m{background:#e5484d}.tb-a{background:#d9840b}.tb-h{background:#7a5af5}.tb-r{background:#119c9c}
 .sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
 @media(max-width:520px){.sub{grid-template-columns:minmax(0,1fr)}}
 .sub .btn{justify-content:center}
 .back{margin:12px 0 -6px}
+.memcover{position:absolute;inset:0;background:color-mix(in srgb,var(--card) 82%,transparent);border-radius:16px;display:grid;place-items:center;text-align:center;font-weight:800;font-size:clamp(20px,4vw,28px);color:var(--mut);padding:10px;pointer-events:none}
+.memcover b{display:block;font-size:clamp(48px,10vw,72px);color:var(--acc);line-height:1}
 .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:20px;align-items:center}
 @media(max-width:700px){.hero{grid-template-columns:minmax(0,1fr)}}
 .hero svg{width:100%;max-width:360px;height:auto;margin:0 auto;display:block}
@@ -247,6 +249,7 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
   <div class="home">
     <button class="tbtn tb-m" data-go="mel"><b>Melodie&shy;trainer</b><span>Töne und kleine Melodien nachsingen</span><small id="homeM"></small><svg viewBox="0 0 24 24"><path d="M9 18.5a3 3 0 1 1-2-2.8V4l12-2v13.5a3 3 0 1 1-2-2.8V6.3l-8 1.4z" fill="#fff"/></svg></button>
     <button class="tbtn tb-h" data-go="har"><b>Harmonie&shy;trainer</b><span>Intervalle und Akkorde – einen Ton dazusingen</span><small id="homeH"></small><svg viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="8" cy="18" rx="4" ry="3"/><ellipse cx="8" cy="11" rx="4" ry="3"/><ellipse cx="16" cy="6" rx="4" ry="3"/></g></svg></button>
+    <button class="tbtn tb-a" data-go="mem"><b>Auswendig&shy;trainer</b><span>Anhören, ansehen, merken – dann ohne Noten singen</span><small id="homeA"></small><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3C7.6 3 4 6.4 4 10.6c0 2.4 1.2 4.6 3.1 6V21h5v-2.2h2.3a2.6 2.6 0 0 0 2.6-2.6V14h2.2L17.9 10C17.6 6.1 15.1 3 12 3z"/></svg></button>
     <button class="tbtn tb-r" data-go="rhy"><b>Rhythmus&shy;trainer</b><span>Rhythmen hören und nachklopfen</span><small id="homeR"></small><svg viewBox="0 0 24 24"><g fill="#fff"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/></g></svg></button>
   </div>
   <div class="sub">
@@ -305,6 +308,28 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
   <div class="panel settings">
     <div>Dein Ton wird …<div class="seg" id="hMode"><button data-m="hear">vorgespielt</button><button data-m="note">nur als Note gezeigt</button></div></div>
     <label class="chk"><input type="checkbox" id="hDrone">Vorgabe beim Singen weiterklingen lassen (nur mit Kopfhörern)</label>
+  </div>
+  <div class="panel settings sset"></div>
+</section>
+
+<!-- AUSWENDIG -->
+<section id="v-mem" class="view" hidden>
+  <button class="btn small ghost back" data-go="home">← Menü</button>
+  <div class="titlerow"><h1>Auswendigtrainer</h1><span class="voicetag vtag"></span></div>
+  <p class="lead" style="margin-bottom:8px">Hör dir die Melodie so oft an, wie du willst, und schau dir die Noten an. Beim Singen verschwinden die Noten – jetzt zählt dein Gedächtnis.</p>
+  <div class="picker" id="aPick"></div>
+  <div class="extitle" id="aTitle"></div>
+  <div class="sheet" style="position:relative"><svg id="aStaff" role="img" aria-label="Noten der Übung"></svg><div class="memcover" id="aCover" hidden></div></div>
+  <div class="actions">
+    <button id="aPlay" class="btn"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>Anhören</button>
+    <button id="aSing" class="btn primary"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1a7 7 0 0 0 6-6.9z"/></svg>Auswendig singen</button>
+    <button id="aNext" class="btn ghost">Nächste Übung</button>
+  </div>
+  <p id="aCount" style="color:var(--mut);font-weight:700;margin:8px 0 0"></p>
+  <div id="aTuner"></div>
+  <p id="aMsg" class="msg" aria-live="polite"></p>
+  <div class="panel settings">
+    <div>So lernst du die Melodie<div class="seg" id="aMode"><button data-m="both">ansehen + anhören</button><button data-m="hear">nur anhören</button><button data-m="see">nur ansehen</button></div></div>
   </div>
   <div class="panel settings sset"></div>
 </section>
@@ -381,6 +406,18 @@ const HAR=[
  [[1,5],3,'d-Moll: Terz dazusingen'],[[2,6],4,'e-Moll: Terz dazusingen'],[[0,2],5,'a-Moll: Grundton dazusingen'],[[1,6],4,'G-Dur: Grundton dazusingen'],[[0,5],3,'F-Dur: Grundton dazusingen'],
  [[1,4,6],3,'G7: Septime dazusingen'],[[0],6],[[1],7],[[0,4,7],2,'C-Dur: Terz in die Mitte singen'],[[3],6]
 ].map(([g,t,name])=>({g,t,name}));
+/* Auswendig: Takte mit | getrennt, Dauer in Vierteln (":2" Halbe, ":4" Ganze, ":.5" Achtel, ":1.5" punktierte Viertel, ":3" punktierte Halbe) */
+const MEM_LV=[['1 Ton',6],['1 Takt',8],['4 Takte',8],['8 Takte',8]];
+const MEM=[
+ ['Ton merken: c','0:4'],['Ton merken: g','4:4'],['Ton merken: e','2:4'],['Ton merken: c (hoch)','7:4'],['Ton merken: f','3:4'],['Ton merken: a','5:4'],
+ ['Treppe aufwärts','0 1 2 3'],['Treppe abwärts','4 3 2 1'],['Dreiklang','0 2 4:2'],['Kuckuck','4 4 2:2'],['Kleiner Bogen','2 3 4 2'],['Sprung und Schritte','0 4 3 2'],['Nachbartöne','5 4 3 4'],['Hin und her','0 2 1 3'],
+ ['Alle meine Entchen (Anfang)','0 1 2 3|4:2 4:2|5 5 5 5|4:4'],['Hänschen klein (Anfang)','4 2 2:2|3 1 1:2|0 1 2 3|4 4 4:2'],['Dreiklang-Melodie','0 2 4 2|0 2 4:2|3 2 1 2|0:4'],['Wellen abwärts','4 3 2 1|0 1 2:2|4 3 2 1|2 1 0:2'],
+ ['Bruder Jakob (Anfang)','0 1 2 0|0 1 2 0|2 3 4:2|2 3 4:2'],['Ode an die Freude (Anfang)','2 2 3 4|4 3 2 1|0 0 1 2|2:1.5 1:.5 1:2'],['Morgen kommt der Weihnachtsmann (Anfang)','0 0 4 4|5 5 4:2|3 3 2 2|1 1 0:2'],['Bogen-Melodie','4 5 4 3|2 3 4:2|1 2 3:2|2 3 4:2'],
+ ['Alle meine Entchen','0 1 2 3|4:2 4:2|5 5 5 5|4:4|3 3 3 3|2:2 2:2|1 1 1 1|0:4'],['Hänschen klein','4 2 2:2|3 1 1:2|0 1 2 3|4 4 4:2|4 2 2:2|3 1 1:2|0 2 4 4|0:4'],
+ ['Morgen kommt der Weihnachtsmann','0 0 4 4|5 5 4:2|3 3 2 2|1 1 0:2|4 4 3 3|2 2 1:2|4 4 3 3|2 2 1:2'],['Ode an die Freude','2 2 3 4|4 3 2 1|0 0 1 2|2:1.5 1:.5 1:2|2 2 3 4|4 3 2 1|0 0 1 2|1:1.5 0:.5 0:2'],
+ ['Mary had a little lamb','2 1 0 1|2 2 2:2|1 1 1:2|2 4 4:2|2 1 0 1|2 2 2 2|1 1 2 1|0:4'],['Große Sprünge','0 2 4 7|6 4 5:2|3 5 4 2|1:4|0 2 4 7|6 4 5 3|2 4 1 2|0:4'],
+ ['Ruf und Antwort','4 4 5 4|2:2 0:2|1 2 3 4|2:4|4 4 5 4|2:2 0:2|1 3 2 1|0:4'],['Weite Bögen','0:2 2:2|4:2 7:2|5 4 3 2|1:4|3:2 5:2|4 3 2 1|2 4 1 1|0:4']
+].map(([t,s])=>({t,n:s.split('|').flatMap((bar,b)=>bar.trim().split(/\s+/).map(x=>{const[a,d]=x.split(':');return{o:+a,d:+(d||1),bar:b}}))}));
 /* Rhythmus: Takte mit | getrennt; q Viertel, h Halbe, w Ganze, r Viertelpause, ee zwei Achtel, e Achtel, dqe punktierte Viertel + Achtel */
 const RHY=['q q q q','h h','q q h','h q q','q r q r','q q q q|h h','q r q q|h h','h q r|q q h','q q h|q q h','q r h|q q q r',
  'ee q ee q','q ee q ee','ee ee q q','ee q q q|ee ee h','q ee q r|ee ee q q','ee ee ee q|h ee q','h ee ee|q r ee q','ee q ee ee|q q h','q q ee ee|ee q h','ee ee h|ee ee q r',
@@ -395,8 +432,8 @@ try{const d=JSON.parse(localStorage.getItem('singtrainer2')||'null');if(d&&Array
 const save=()=>{try{localStorage.setItem('singtrainer2',JSON.stringify(DB))}catch(e){}};
 let P=null;
 function newProfile(name,age,gender){return{id:Date.now().toString(36),name,age,gender,voice:null,bpm:80,tol:30,oct:true,names:true,metro:true,hMode:'hear',drone:false,sound:'piano',
-  cur:{m:0,h:0,r:0},done:{m:{},h:{},r:{}},solved:0,flames:0,days:{},weeks:{},crowns:0,best:0}}
-function useProfile(id){P=DB.profiles.find(p=>p.id===id)||null;DB.current=P?P.id:null;save();}
+  cur:{m:0,h:0,r:0,a:0},done:{m:{},h:{},r:{},a:{}},memMode:'both',solved:0,flames:0,days:{},weeks:{},crowns:0,best:0}}
+function useProfile(id){P=DB.profiles.find(p=>p.id===id)||null;if(P){P.done.a=P.done.a||{};if(P.cur.a==null)P.cur.a=0;P.memMode=P.memMode||'both'}DB.current=P?P.id:null;save();}
 
 /* ================= Hilfsfunktionen Musik ================= */
 const STEP=[0,2,4,5,7,9,11],PC=['c','cis','d','dis','e','f','fis','g','gis','a','b','h'];
@@ -507,17 +544,17 @@ function stopLoop(){loopFn=null}
 
 /* ================= Navigation ================= */
 let VIEW='start';
-function show(v){stopSession();stopLoop();if(v!=='start'&&!P)v='start';if(v!=='start')editing=false;if((v==='mel'||v==='har')&&!P.voice)v='voice';VIEW=v;
+function show(v){stopSession();stopLoop();if(v!=='start'&&!P)v='start';if(v!=='start')editing=false;if((v==='mel'||v==='har'||v==='mem')&&!P.voice)v='voice';VIEW=v;
   $$('.view').forEach(s=>s.hidden=s.id!=='v-'+v);
   $('#stats').hidden=!P||(v==='start'&&!editing);$('#hHome').hidden=true;
   if(v==='home')renderHome();
   if(v==='start')renderStart();if(v==='voice')renderVoice();if(v==='mel'){renderPicker('m');renderMel();resetTuner('m')}if(v==='har'){renderPicker('h');renderHar();resetTuner('h')}
-  if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();window.scrollTo(0,0)}
+  if(v==='mem'){renderPicker('a');renderMem();resetTuner('a')}if(v==='rhy'){renderPicker('r');loadRhythm()}if(v==='win')renderWin();syncSettings();window.scrollTo(0,0)}
 $$('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
 $('#hHome').onclick=()=>show('home');$('#hProf').onclick=$('#homeProf').onclick=()=>{editing=true;show('start')};
 function renderHome(){$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
   const wf=P.weeks[ymd(monday())]||0;$('#homeSub').textContent=`Diese Woche ${wf} von 3 Flammen · ${streak()} ${streak()===1?'Tag':'Tage'} in Folge · Stimmlage ${P.voice?VOICES[P.voice].name:'noch offen'}`;
-  [['m','#homeM'],['h','#homeH'],['r','#homeR']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 30 geschafft')}
+  [['m','#homeM'],['h','#homeH'],['r','#homeR'],['a','#homeA']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 30 geschafft')}
 
 /* ================= Start / Profil ================= */
 let fGender='',editing=false;
@@ -538,7 +575,7 @@ function dangerOpen(act){dangerAct=act;$('#dangerBtns').hidden=true;$('#dangerAs
   $('#dangerQ').textContent=act==='reset'?`Wirklich den ganzen Fortschritt von ${P.name} löschen? Das kann man nicht rückgängig machen.`:`Wirklich das Profil ${P.name} mit allen Erfolgen löschen? Das kann man nicht rückgängig machen.`;
   $('#dangerYes').textContent=act==='reset'?'Ja, zurücksetzen':'Ja, löschen';$('#dangerNo').focus()}
 $('#pReset').onclick=()=>dangerOpen('reset');$('#pDelete').onclick=()=>dangerOpen('delete');$('#dangerNo').onclick=dangerClose;
-$('#dangerYes').onclick=()=>{if(!P)return;if(dangerAct==='reset'){Object.assign(P,{cur:{m:0,h:0,r:0},done:{m:{},h:{},r:{}},solved:0,flames:0,days:{},weeks:{},crowns:0,best:0});save();header();toast('Fortschritt zurückgesetzt – alles beginnt von vorn.');show('home')}
+$('#dangerYes').onclick=()=>{if(!P)return;if(dangerAct==='reset'){Object.assign(P,{cur:{m:0,h:0,r:0,a:0},done:{m:{},h:{},r:{},a:{}},solved:0,flames:0,days:{},weeks:{},crowns:0,best:0});save();header();toast('Fortschritt zurückgesetzt – alles beginnt von vorn.');show('home')}
   else{const n=P.name;DB.profiles=DB.profiles.filter(x=>x.id!==P.id);DB.current=null;P=null;editing=false;save();toast(`Profil ${n} gelöscht.`);show('start')}};$('#fNew').onclick=()=>{editing=false;renderStart();$('#fName').focus()};
 $('#pform').onsubmit=e=>{e.preventDefault();const age=+$('#fAge').value,err=$('#fErr');
   if(!age){err.textContent='Bitte wähle dein Alter.';err.hidden=false;return}if(!fGender){err.textContent='Bitte wähle aus, ob du ein Mädchen oder ein Junge bist (oder „keine Angabe“).';err.hidden=false;return}
@@ -573,24 +610,25 @@ $$('.sset').forEach(e=>e.innerHTML=SSET);
 const tempoWord=b=>b<66?'langsam':b<100?'mittel':'schnell';
 function syncSettings(){if(!P)return;$$('.sTol').forEach(s=>s.value=P.tol);$$('.sOct').forEach(c=>c.checked=P.oct);$$('.sNames').forEach(c=>c.checked=P.names);
   $$('.bpm').forEach(i=>i.value=P.bpm);$$('.bpmOut').forEach(o=>o.textContent='♩ = '+P.bpm+' · '+tempoWord(P.bpm));$('#metro').checked=P.metro;$('#hDrone').checked=P.drone;
-  $$('#hMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===P.hMode));$$('.sSound button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===(P.sound||'piano')))}
+  $$('#hMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===P.hMode));$$('#aMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===(P.memMode||'both')));$$('.sSound button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===(P.sound||'piano')))}
 $$('.sSound button').forEach(b=>b.onclick=()=>{P.sound=b.dataset.s;save();syncSettings();tone(P.voice?dnMidi(V().base+2):64,ac().currentTime+0.05,0.8)});
 $$('.sTol').forEach(s=>s.onchange=()=>{P.tol=+s.value;save();syncSettings()});
 $$('.sOct').forEach(c=>c.onchange=()=>{P.oct=c.checked;save();syncSettings()});
-$$('.sNames').forEach(c=>c.onchange=()=>{P.names=c.checked;save();syncSettings();renderMel();renderHar()});
+$$('.sNames').forEach(c=>c.onchange=()=>{P.names=c.checked;save();syncSettings();renderMel();renderHar();renderMem()});
+$$('#aMode button').forEach(b=>b.onclick=()=>{P.memMode=b.dataset.m;save();syncSettings();renderMem()});
 $$('.bpm').forEach(i=>i.oninput=()=>{P.bpm=+i.value;save();syncSettings()});
 $('#metro').onchange=e=>{P.metro=e.target.checked;save()};$('#hDrone').onchange=e=>{P.drone=e.target.checked;save()};
 $$('#hMode button').forEach(b=>b.onclick=()=>{P.hMode=b.dataset.m;save();syncSettings()});
 
 /* ================= Übungsauswahl ================= */
-const KIND={m:{list:MEL,name:i=>MEL[i].t},h:{list:HAR,name:i=>HAR[i].name||ivName(HAR[i].g[0],HAR[i].t)},r:{list:RHY,name:i=>RNAME[i]}};
-function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),cur=P.cur[k];
-  el.innerHTML=LV.map((l,L)=>`<div class="lvl"><b>${l}</b><div class="tiles">${Array.from({length:10},(_,j)=>{const i=L*10+j;return `<button class="tile${P.done[k][i]?' done':''}" data-k="${k}" data-i="${i}" aria-current="${i===cur}" aria-label="Übung ${i+1}${P.done[k][i]?', geschafft':''}">${P.done[k][i]?'✓':i+1}</button>`}).join('')}</div></div>`).join('');
+const KIND={a:{list:MEM,name:i=>MEM[i].t,levels:MEM_LV},m:{list:MEL,name:i=>MEL[i].t},h:{list:HAR,name:i=>HAR[i].name||ivName(HAR[i].g[0],HAR[i].t)},r:{list:RHY,name:i=>RNAME[i]}};
+function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),cur=P.cur[k],lv=KIND[k].levels||LV.map(l=>[l,10]),start=[];let acc=0;lv.forEach(([,n])=>{start.push(acc);acc+=n});
+  el.innerHTML=lv.map(([l,cnt],L)=>`<div class="lvl"><b>${l}</b><div class="tiles">${Array.from({length:cnt},(_,j)=>{const i=start[L]+j;return `<button class="tile${P.done[k][i]?' done':''}" data-k="${k}" data-i="${i}" aria-current="${i===cur}" aria-label="Übung ${i+1}${P.done[k][i]?', geschafft':''}">${P.done[k][i]?'✓':i+1}</button>`}).join('')}</div></div>`).join('');
   el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>selectEx(k,+b.dataset.i));
-  const L=Math.floor(cur/10);$('#'+k+'Title').innerHTML=`<span><span class="lv lv${L+1}">${LV[L]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`}
-function selectEx(k,i){stopSession();P.cur[k]=i;save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();
+  let L=0;start.forEach((st,j)=>{if(cur>=st)L=j});const lc=lv.length>3?[1,2,3,3][L]:L+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[L][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`}
+function selectEx(k,i){stopSession();P.cur[k]=i;save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();if(k==='a'){memListens=0;SES.lastMem=null;renderMem()}
   $('#'+k+'Msg')&&($('#'+k+'Msg').textContent='');resetTuner(k)}
-$('#mNext').onclick=()=>selectEx('m',(P.cur.m+1)%30);$('#hNext').onclick=()=>selectEx('h',(P.cur.h+1)%30);$('#rNext').onclick=()=>selectEx('r',(P.cur.r+1)%30);
+$('#aNext').onclick=()=>selectEx('a',(P.cur.a+1)%30);$('#mNext').onclick=()=>selectEx('m',(P.cur.m+1)%30);$('#hNext').onclick=()=>selectEx('h',(P.cur.h+1)%30);$('#rNext').onclick=()=>selectEx('r',(P.cur.r+1)%30);
 
 /* ================= Notensystem ================= */
 const TREBLE='M2,2 C8,2 9,-8 2,-9 C-6,-10 -10,-1 -7,6 C-4,13 10,13 12,4 C14,-6 6,-13 -1,-19 C-9,-26 -7,-47 1,-52 C7,-55 9,-45 4,-38 C-1,-31 -2,-20 0,-6 L4,22 C5,29 -3,31 -5,26';
@@ -603,6 +641,8 @@ function noteSVG(x,dn,bottom,yB,dur,cls,dx=0){const y=d=>yB-(d-bottom)*6,yy=y(dn
   for(let d=bottom+10;d<=dn;d+=2)g+=`<line x1="${x-13}" x2="${x+13+dx}" y1="${y(d)}" y2="${y(d)}" stroke-width="1.4"/>`;
   if(dur<4)g+=up?`<line x1="${X+7}" x2="${X+7}" y1="${yy}" y2="${yy-38}" stroke-width="1.6"/>`:`<line x1="${X-7}" x2="${X-7}" y1="${yy}" y2="${yy+38}" stroke-width="1.6"/>`;
   g+=dur>=4?`<ellipse class="open" cx="${X}" cy="${yy}" rx="9" ry="6"/>`:`<ellipse ${dur>=2?'class="open"':''} cx="${X}" cy="${yy}" rx="7.8" ry="5.6" transform="rotate(-20 ${X} ${yy})"/>`;
+  if(dur===1.5||dur===3)g+=`<circle class="f" cx="${X+14}" cy="${(dn-bottom)%2===0?yy-4:yy}" r="2.6"/>`;
+  if(dur===0.5)g+=up?`<path class="s" d="M${X+7},${yy-38} C${X+10},${yy-28} ${X+20},${yy-26} ${X+16},${yy-12}" fill="none" stroke-width="2.4"/>`:`<path class="s" d="M${X-7},${yy+38} C${X-4},${yy+28} ${X+6},${yy+26} ${X+2},${yy+12}" fill="none" stroke-width="2.4"/>`;
   return `<g class="n ${cls}">${g}</g>`}
 function fitSvg(svg,W,H){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.6)+'px';svg.style.minWidth=W>480?Math.round(W*0.68)+'px':''}
 
@@ -620,6 +660,35 @@ $('#mPlay').onclick=()=>{const c=ac(),beat=60/P.bpm,t0=c.currentTime+0.1,notes=c
   notes.forEach((n,i)=>{tone(dnMidi(n.dn),t0+t*beat,n.d*beat*0.92);setTimeout(()=>{mHL=i;renderMel()},(0.1+t*beat)*1000);t+=n.d});
   setTimeout(()=>{mHL=-1;renderMel()},(0.1+t*beat)*1000);if(SES.kind==='mel')SES.pause=performance.now()+(0.4+t*beat)*1000};
 $('#mSing').onclick=()=>startSession('mel');
+
+/* ================= Auswendig ================= */
+let aHL=-1,memListens=0,memCD=0;
+const curMem=()=>MEM[P.cur.a].n.map(n=>({dn:V().base+n.o,d:n.d,bar:n.bar}));
+function renderMem(){if(!P||!P.voice||VIEW!=='mem')return;const v=V(),notes=curMem(),bottom=v.clef==='bass'?18:30,mode=P.memMode||'both';
+  const bars=notes[notes.length-1].bar+1,wide=$('#v-mem .sheet').clientWidth>=560,bps=Math.min(bars,wide?4:2),systems=Math.ceil(bars/bps),BW=bars===1&&notes.length===1?120:170,X0=70,W=X0+bps*BW+10,SH=150,H=systems*SH+10;
+  const act=SES.kind==='mem',hide=act||memCD>0||(mode==='hear'&&!act);let s='';
+  for(let y=0;y<systems;y++){const yB=y*SH+100;for(let i=0;i<5;i++)s+=`<line class="sl" x1="8" x2="${W-8}" y1="${yB-i*12}" y2="${yB-i*12}"/>`;s+=clefSVG(v.clef,yB);
+    const nb=Math.min(bps,bars-y*bps);for(let b=1;b<=nb;b++){const bx=X0+b*BW,last=y*bps+b===bars;s+=`<line class="sl" x1="${bx}" x2="${bx}" y1="${yB-48}" y2="${yB}" style="stroke-width:${last?3.4:1.4}"/>`}}
+  let beat=0,prevBar=0;
+  notes.forEach((n,i)=>{if(n.bar!==prevBar){beat=0;prevBar=n.bar}const sys=Math.floor(n.bar/bps),yB=sys*SH+100,x=X0+(n.bar%bps)*BW+18+beat*(BW-30)/4;beat+=n.d;
+    const st=act?SES.st[i]:'';if(hide&&st!=='hit'&&!(SES.kind!=='mem'&&SES.st&&SES.lastMem&&SES.lastMem[i]))return;
+    let cls=st||'';if(aHL===i)cls='cur';if(!act&&SES.lastMem&&SES.lastMem[i])cls=SES.lastMem[i];
+    if(aHL===i)s+=`<rect class="hl" x="${x-16}" y="${yB-70}" width="32" height="96" rx="10"/>`;
+    s+=noteSVG(x,n.dn,bottom,yB,n.d,cls);if(P.names&&!hide)s+=`<text class="nl" x="${x}" y="${yB+44}" text-anchor="middle" style="font-size:13px">${midiName(dnMidi(n.dn))}</text>`});
+  const svg=$('#aStaff');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.5)+'px';svg.style.minWidth='';svg.innerHTML=s;
+  const cov=$('#aCover');
+  if(memCD>0){cov.hidden=false;cov.innerHTML=`<div><b>${memCD}</b>Noten weg – merk dir die Melodie!</div>`}
+  else if(act){const done=SES.st.filter(x=>x==='hit'||x==='skip').length;cov.hidden=SES.st.some(x=>x);cov.innerHTML=`<div>Sing auswendig!<br><span style="font-size:16px">${notes.length} ${notes.length===1?'Ton':'Töne'}</span></div>`;if(done)cov.hidden=true}
+  else if(mode==='hear'){cov.hidden=false;cov.innerHTML='<div>Nur anhören – die Noten bleiben versteckt.<br><span style="font-size:16px">Tipp auf „Anhören“</span></div>'}
+  else cov.hidden=true;
+  $('#aPlay').disabled=mode==='see'||act;
+  $('#aCount').textContent=(mode==='see'?'Nur ansehen: Lies die Noten und stell dir die Melodie vor. ':memListens?`Angehört: ${memListens}× · `:'')+`${notes.length} ${notes.length===1?'Ton':'Töne'} · ${bars} ${bars===1?'Takt':'Takte'}`}
+$('#aPlay').onclick=()=>{const c=ac(),beat=60/P.bpm,t0=c.currentTime+0.1,notes=curMem();let t=0;SES.lastMem=null;memListens++;
+  notes.forEach((n,i)=>{tone(dnMidi(n.dn),t0+t*beat,n.d*beat*0.92);setTimeout(()=>{aHL=i;renderMem()},(0.1+t*beat)*1000);t+=n.d});
+  setTimeout(()=>{aHL=-1;renderMem()},(0.1+t*beat)*1000);renderMem()};
+$('#aSing').onclick=async()=>{if(!P.voice)return show('voice');if(!await startMic())return;stopSession();SES.lastMem=null;memCD=3;renderMem();$('#aSing').disabled=true;$('#aMsg').textContent='';
+  const tick=()=>{if(VIEW!=='mem'){memCD=0;$('#aSing').disabled=false;return}memCD--;if(memCD>0){renderMem();setTimeout(tick,1000)}else{renderMem();startSession('mem')}};setTimeout(tick,1000)};
+window.addEventListener('resize',()=>{if(VIEW==='mem')renderMem()});
 
 /* ================= Harmonie ================= */
 let hHL=false;
@@ -640,24 +709,25 @@ $('#hSing').onclick=()=>startSession('har');
 /* ================= Sing-Sitzung (Melodie + Harmonie) ================= */
 const TUNER=p=>`<div class="panel tuner"><svg class="gauge" id="${p}Gauge" viewBox="0 0 240 150" aria-hidden="true"></svg><div><div class="big" id="${p}Note">–</div><div class="cents" id="${p}Cents">&nbsp;</div><div class="hint" id="${p}Hint"></div><div class="holdbar" aria-hidden="true"><i id="${p}Hold"></i></div></div>
 <div class="row"><button id="${p}Tone" class="btn small ghost">Ton nochmal hören</button><button id="${p}Skip" class="btn small ghost" hidden>Überspringen</button><button id="${p}Stop" class="btn small ghost" hidden>Stopp</button></div></div>`;
-$('#mTuner').innerHTML=TUNER('m');$('#hTuner').innerHTML=TUNER('h');
+$('#mTuner').innerHTML=TUNER('m');$('#hTuner').innerHTML=TUNER('h');$('#aTuner').innerHTML=TUNER('a');$('#aTone').textContent='Anfangston hören';
 const SES={kind:null,targets:[],idx:0,st:[],hold:0,noteT:0,t0:0,pause:0,skips:0,need:450,drone:null};
-const pre=k=>k==='mel'?'m':'h';
-function resetTuner(k){const p=k==='r'?null:k;if(!p)return;gauge(p,null,null);$('#'+p+'Hint').textContent=p==='m'?'Erst „Vorspielen“, dann „Nachsingen“.':'Erst „Vorspielen“, dann „Dazusingen“.';$('#'+p+'Hint').className='hint';$('#'+p+'Hold').style.width='0'}
+const pre=k=>({mel:'m',har:'h',mem:'a'})[k];const RENDER={mel:()=>renderMel(),har:()=>renderHar(),mem:()=>renderMem()};
+function resetTuner(k){const p=k==='r'?null:k;if(!p)return;gauge(p,null,null);$('#'+p+'Hint').textContent=p==='m'?'Erst „Vorspielen“, dann „Nachsingen“.':p==='a'?'Erst anhören und ansehen, dann „Auswendig singen“.':'Erst „Vorspielen“, dann „Dazusingen“.';$('#'+p+'Hint').className='hint';$('#'+p+'Hold').style.width='0'}
 async function startSession(kind){if(!P.voice)return show('voice');if(!await startMic())return;stopSession();const p=pre(kind);
-  SES.kind=kind;SES.targets=kind==='mel'?curMel().map(n=>n.dn):[curHar().t];SES.need=kind==='mel'?450:700;
+  SES.kind=kind;SES.targets=kind==='mel'?curMel().map(n=>n.dn):kind==='mem'?curMem().map(n=>n.dn):[curHar().t];SES.need=kind==='har'?700:450;SES.rel=false;
   SES.idx=0;SES.st=SES.targets.map(()=>'');SES.hold=0;SES.skips=0;SES.t0=SES.noteT=performance.now();SES.pause=0;hist=[];
   if(kind==='har'){const e=curHar(),t=ac().currentTime+0.05;
     if(P.drone){SES.drone=e.g.map(dn=>P.sound==='voice'?voice(dnMidi(dn),t,120,0.18):organ(dnMidi(dn),t,120));SES.pause=performance.now()+700}
     else{e.g.forEach(dn=>tone(dnMidi(dn),t,1.5,0.26));SES.pause=performance.now()+2000}}
-  $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;kind==='mel'?renderMel():renderHar();startLoop(sesTick)}
+  $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;RENDER[kind]();startLoop(sesTick)}
 function stopSession(){if(!SES.kind)return;const p=pre(SES.kind);if(SES.drone){SES.drone.forEach(d=>d.stop());SES.drone=null}
-  $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();k==='mel'?renderMel():renderHar()}
+  $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();RENDER[k]()}
 function sesTick(now){if(now-lastTick<30)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
   if(now<SES.pause){gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Hör zu …';h.className='hint';return}
   const target=dnMidi(SES.targets[SES.idx]);let c=null;
+  if(SES.rel){if(m==null||now-SES.noteT>700)SES.rel=false;else{gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Gleicher Ton nochmal – kurz neu ansetzen';h.className='hint';return}}
   if(m!=null){c=(m-target)*100;if(P.oct)c=((c%1200)+1800)%1200-600}
-  gauge(p,m,c,midiName(target));
+  gauge(p,m,c,SES.kind==='mem'?null:midiName(target));
   if(c!=null&&Math.abs(c)<=P.tol)SES.hold+=dt;else SES.hold=Math.max(0,SES.hold-dt*0.6);
   $('#'+p+'Hold').style.width=Math.min(100,SES.hold/SES.need*100)+'%';$('#'+p+'Skip').hidden=now-SES.noteT<7000;
   if(SES.hold>=SES.need){SES.st[SES.idx]='hit';nextTarget(now)}}
@@ -667,8 +737,8 @@ function nextTarget(now){const p=pre(SES.kind),kind=SES.kind;SES.hold=0;SES.idx+
     const h=$('#'+p+'Hint');
     if(!sk){$('#'+p+'Msg').textContent=(n>1?`Super – alle ${n} Töne getroffen!`:'Super – getroffen!')+` (${sec} s)`;h.textContent='Geschafft! Weiter mit „Nächste Übung“.';h.className='hint ok';award(k,P.cur[k])}
     else{$('#'+p+'Msg').textContent=`${n-sk} von ${n} Tönen getroffen. Versuch es nochmal ohne Überspringen!`;h.textContent='Fast! Probier es gleich nochmal.';h.className='hint'}
-    kind==='mel'?renderMelDone(st):renderHarDone(st);return}
-  SES.noteT=now;SES.pause=now+350;renderMel()}
+    if(kind==='mem'){SES.lastMem=st;renderMem()}else kind==='mel'?renderMelDone(st):renderHarDone(st);return}
+  SES.noteT=now;SES.pause=now+(kind==='mem'?150:350);SES.rel=SES.targets[SES.idx]===SES.targets[SES.idx-1];RENDER[kind]()}
 function renderMelDone(st){SES.kind='mel';SES.idx=-1;SES.st=st;renderMel();SES.kind=null}
 function renderHarDone(st){SES.kind='har';SES.st=st;renderHar();SES.kind=null}
 function gaugeBuild(p){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50,A=60,cx=120,cy=135,r=105,rad=a=>a*Math.PI/180,pt=(a,rr=r)=>[cx+rr*Math.sin(rad(a)),cy-rr*Math.cos(rad(a))];
@@ -685,14 +755,14 @@ function gauge(p,m,c,tn){const el=$('#'+p+'Gauge'),T=P?P.tol:30,R=T<=15?25:50;if
   $('#'+p+'Note').textContent=m==null?'–':midiName(Math.round(m));
   const ce=$('#'+p+'Cents');if(c==null){ce.innerHTML='&nbsp;';ce.className='cents'}else{const v=Math.round(c);ce.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)+' Cent';ce.className='cents '+(Math.abs(c)<=T?'ok':'off')}
   if(!SES.kind||tn===undefined)return;const h=$('#'+p+'Hint');
-  if(c==null){h.textContent=`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
+  if(c==null){h.textContent=tn==null?`Sing weiter – Ton ${SES.idx+1} von ${SES.targets.length}`:`Sing „la“ – Zielton: ${tn}`;h.className='hint'}
   else if(c<-T){h.textContent=c<-100?'Viel zu tief – höher singen ↑':'Etwas höher singen ↑';h.className='hint lo'}
   else if(c>T){h.textContent=c>100?'Viel zu hoch – tiefer singen ↓':'Etwas tiefer singen ↓';h.className='hint hi'}
   else{h.textContent='Genau so – halten!';h.className='hint ok'}}
-['m','h'].forEach(p=>{const kind=p==='m'?'mel':'har';
+['m','h','a'].forEach(p=>{const kind={m:'mel',h:'har',a:'mem'}[p];
   $('#'+p+'Stop').onclick=()=>{stopSession();const h=$('#'+p+'Hint');h.textContent='Gestoppt.';h.className='hint'};
   $('#'+p+'Skip').onclick=()=>{SES.st[SES.idx]='skip';SES.skips++;nextTarget(performance.now())};
-  $('#'+p+'Tone').onclick=()=>{if(!P.voice)return;const dn=SES.kind===kind?SES.targets[SES.idx]:(kind==='mel'?curMel()[0].dn:curHar().t);
+  $('#'+p+'Tone').onclick=()=>{if(!P.voice)return;const dn=kind==='mem'?curMem()[0].dn:SES.kind===kind?SES.targets[SES.idx]:(kind==='mel'?curMel()[0].dn:curHar().t);
     tone(dnMidi(dn),ac().currentTime+0.05,1);if(SES.kind)SES.pause=performance.now()+1600}});
 
 /* ================= Rhythmus ================= */
@@ -761,7 +831,7 @@ function renderWin(){const st=streak(),wk=ymd(monday()),wf=P.weeks[wk]||0,run=we
   const mo=monday(),names=['Mo','Di','Mi','Do','Fr','Sa','So'],today=ymd(new Date());
   $('#wDays').innerHTML=names.map((n,i)=>{const d=new Date(mo);d.setDate(mo.getDate()+i);const k2=ymd(d),on=!!P.days[k2];return `<div>${n}<i class="${on?'on':''}${k2===today?' today':''}">${on?'✓':''}</i></div>`}).join('');
   $('#wDaysT').textContent=`Ein Tag zählt, sobald du mindestens eine Übung schaffst. Aktuell ${st} ${st===1?'Tag':'Tage'} in Folge, dein Rekord: ${Math.max(P.best,st)}.`;
-  $('#wProg').innerHTML=[['Melodie','m'],['Harmonie','h'],['Rhythmus','r']].map(([l,k3])=>{const n=Object.keys(P.done[k3]).length;return `<div>${l}: ${n} von 30<div class="meter"><i style="width:${n/30*100}%"></i></div></div>`}).join('');
+  $('#wProg').innerHTML=[['Melodie','m'],['Harmonie','h'],['Auswendig','a'],['Rhythmus','r']].map(([l,k3])=>{const n=Object.keys(P.done[k3]).length;return `<div>${l}: ${n} von 30<div class="meter"><i style="width:${n/30*100}%"></i></div></div>`}).join('');
   $('#wProf').textContent=`${P.name} · ${P.age>=18?'18+':P.age} Jahre · ${P.gender==='w'?'Mädchen':P.gender==='m'?'Junge':'keine Angabe'} · Stimmlage ${P.voice?VOICES[P.voice].name:'offen'}`;
   $('#wDel').textContent='Profil löschen';$('#wDel').dataset.sure=''}
 $('#wSwitch').onclick=()=>{editing=true;show('start')};
