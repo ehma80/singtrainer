@@ -617,8 +617,12 @@ function unlock(){const c=ac();if(unlocked)return;unlocked=true;setSession('play
 function soundTest(){unlock();const c=ac(),t=c.currentTime+0.08;[60,64,67,72].forEach((m,i)=>piano(m,t+i*0.18,0.5));
   setTimeout(()=>{if(c.state!=='running')toast('Der Browser blockiert den Ton. Öffne die Datei direkt in Safari oder Chrome und tippe nochmal.');
     else toast('Hörst du nichts? Lautstärke hochdrehen, am iPhone den Stumm-Schalter ausschalten, Bluetooth prüfen.')},700)}
+/* Gesamtlautstärke: alles läuft über einen Verstärker mit Begrenzer – lauter, ohne zu übersteuern */
+let masterBus=null;
+function OUT(){const c=ac();if(!masterBus){const comp=c.createDynamicsCompressor();comp.threshold.value=-8;comp.knee.value=4;comp.ratio.value=14;comp.attack.value=0.002;comp.release.value=0.12;
+  masterBus=c.createGain();masterBus.gain.value=2.4;masterBus.connect(comp);comp.connect(c.destination)}return masterBus}
 function piano(m,t,dur,vol=0.32){const c=ac(),f=440*2**((m-69)/12),out=c.createGain(),lp=c.createBiquadFilter();
-  lp.type='lowpass';lp.frequency.value=Math.min(9000,f*8);out.gain.value=vol;lp.connect(out);out.connect(c.destination);
+  lp.type='lowpass';lp.frequency.value=Math.min(9000,f*8);out.gain.value=vol;lp.connect(out);out.connect(OUT());
   [[1,1],[2,.45],[3,.22],[4,.12],[5,.05]].forEach(([n,a],i)=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=f*n*(1+i*0.0007);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a,t+0.006);g.gain.exponentialRampToValueAtTime(a*0.35,t+0.25/(1+i*0.5));
     g.gain.setValueAtTime(a*0.3,t+dur);g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.35);o.connect(g);g.connect(lp);o.start(t);o.stop(t+dur+0.4)});}
@@ -631,10 +635,10 @@ function voice(m,t,dur,vol=0.3){const c=ac(),f=440*2**((m-69)/12),end=t+dur+0.18
   const F=f<180?[[300,1],[750,.5],[2300,.08]]:f<330?[[320,1],[850,.45],[2400,.07]]:[[f*1.05,1],[900,.4],[2600,.06]];
   F.forEach(([fr,g])=>{const bp=c.createBiquadFilter(),gg=c.createGain();bp.type='bandpass';bp.frequency.value=fr;bp.Q.value=Math.max(2,fr/90);gg.gain.value=g;src.connect(bp);bp.connect(gg);gg.connect(amp)});
   amp.gain.setValueAtTime(0,t);amp.gain.linearRampToValueAtTime(0.8,t+0.025);amp.gain.linearRampToValueAtTime(1,t+0.09);amp.gain.setValueAtTime(1,t+dur);amp.gain.linearRampToValueAtTime(0,end);
-  amp.connect(out);out.connect(c.destination);
+  amp.connect(out);out.connect(OUT());
   if(!noiseBuf){noiseBuf=c.createBuffer(1,c.sampleRate*0.03,c.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
   const ns=c.createBufferSource(),nb=c.createBiquadFilter(),ng=c.createGain();ns.buffer=noiseBuf;nb.type='bandpass';nb.frequency.value=3000;nb.Q.value=1.2;
-  ng.gain.setValueAtTime(vol*0.5,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.025);ns.connect(nb);nb.connect(ng);ng.connect(c.destination);ns.start(t);
+  ng.gain.setValueAtTime(vol*0.5,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.025);ns.connect(nb);nb.connect(ng);ng.connect(OUT());ns.start(t);
   src.start(t);lfo.start(t);src.stop(end+0.05);lfo.stop(end+0.05);
   return{stop(){const n=c.currentTime;amp.gain.cancelScheduledValues(n);amp.gain.setValueAtTime(amp.gain.value,n);amp.gain.linearRampToValueAtTime(0,n+0.15);try{src.stop(n+0.2);lfo.stop(n+0.2)}catch(e){}}}}
 /* Klang je nach Einstellung: Klavier oder Stimme */
@@ -642,12 +646,12 @@ function tone(m,t,dur,vol){if(P&&P.sound==='voice')return voice(m,t,dur,vol===un
 function organ(m,t,dur,vol=0.1){const c=ac(),f=440*2**((m-69)/12),g=c.createGain(),o1=c.createOscillator(),o2=c.createOscillator(),g2=c.createGain();
   o1.frequency.value=f;o2.frequency.value=f*2;g2.gain.value=0.3;o2.type='triangle';
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.06);g.gain.setValueAtTime(vol,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+0.25);
-  o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(c.destination);o1.start(t);o2.start(t);o1.stop(t+dur+0.3);o2.stop(t+dur+0.3);
+  o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(OUT());o1.start(t);o2.start(t);o1.stop(t+dur+0.3);o2.stop(t+dur+0.3);
   return{stop(){const n=c.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(g.gain.value,n);g.gain.linearRampToValueAtTime(0,n+0.2);o1.stop(n+0.25);o2.stop(n+0.25)}}}
-function click(t,acc,vol=1){const c=ac(),o=c.createOscillator(),g=c.createGain();o.frequency.value=acc?1760:1200;
-  g.gain.setValueAtTime(0.35*vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.06)}
+function click(t,acc,vol=1){const c=ac(),o=c.createOscillator(),g=c.createGain(),bp=c.createBiquadFilter();o.type='square';o.frequency.value=acc?2000:1400;bp.type='bandpass';bp.frequency.value=acc?2000:1400;bp.Q.value=2;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.9*vol,t+0.002);g.gain.exponentialRampToValueAtTime(0.0001,t+0.06);o.connect(bp);bp.connect(g);g.connect(OUT());o.start(t);o.stop(t+0.07)}
 function wood(t){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(500,t+0.08);
-  g.gain.setValueAtTime(0.7,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.13)}
+  g.gain.setValueAtTime(1,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);o.connect(g);g.connect(OUT());o.start(t);o.stop(t+0.13)}
 
 /* ================= Mikrofon + Tonhöhe (YIN) ================= */
 let analyser=null,buf=null,hist=[],lastSeen=0;
