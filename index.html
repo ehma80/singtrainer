@@ -655,10 +655,12 @@ function wood(t){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='tr
 
 /* ================= Mikrofon + Tonhöhe (YIN) ================= */
 let analyser=null,buf=null,hist=[],lastSeen=0;
+let micStream=null,micSrc=null;
 async function startMic(){ac();if(analyser)return true;setSession('play-and-record');
   try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:true}});
     /* Safari verarbeitet das Mikrofon nur, wenn die Kette bis zum Ausgang reicht – daher stumm (Lautstärke 0) an den Ausgang anschließen */
-    const src=ctx.createMediaStreamSource(st),hp=ctx.createBiquadFilter(),mute=ctx.createGain();hp.type='highpass';hp.frequency.value=60;mute.gain.value=0;
+    if(document.hidden){st.getTracks().forEach(t=>t.stop());return false}micStream=st;
+    const src=ctx.createMediaStreamSource(st),hp=ctx.createBiquadFilter(),mute=ctx.createGain();micSrc=src;hp.type='highpass';hp.frequency.value=60;mute.gain.value=0;
     analyser=ctx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=0;src.connect(hp);hp.connect(analyser);analyser.connect(mute);mute.connect(ctx.destination);
     buf=new Float32Array(analyser.fftSize);dsBuf=new Float32Array(analyser.fftSize>>1);if(ctx.state!=='running')ctx.resume().catch(()=>{});$('#micErr').hidden=true;return true;
   }catch(e){const el=$('#micErr');el.hidden=false;
@@ -684,6 +686,11 @@ function readPitch(){if(ctx.state!=='running')ctx.resume().catch(()=>{});analyse
   if(f){hist.push(69+12*Math.log2(f/440));if(hist.length>5)hist.shift();lastSeen=now}else if(now-lastSeen>200)hist=[];
   if(!hist.length){sm=null;return null}const md=med(hist.length>=3?hist.slice(-3):hist);
   if(sm==null||Math.abs(md-sm)>0.5)sm=md;else sm+=0.5*(md-sm);return sm}
+/* Mikrofon freigeben, sobald die App verlassen wird (anderer Tab, andere App, Bildschirm aus) */
+function releaseMic(){try{if(SES.kind)stopSession()}catch(e){}stopLoop();if(memCD>0){memCD=0;$('#aSing').disabled=false;focusSing('mem',false)}
+  $('#chkBtn').disabled=false;$('#chkLive').textContent='';
+  if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}try{micSrc&&micSrc.disconnect()}catch(e){}micSrc=null;analyser=null;hist=[];sm=null;setSession('playback')}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseMic()});window.addEventListener('pagehide',releaseMic);
 let loopFn=null,lastTick=0;
 function loop(t){if(!loopFn)return;loopFn(t);requestAnimationFrame(loop)}
 function startLoop(fn){loopFn=fn;lastTick=performance.now();requestAnimationFrame(loop)}
