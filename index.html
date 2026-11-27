@@ -56,7 +56,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .titlerow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .voicetag{font-weight:800;color:var(--vc,var(--mut))}
 .picker{display:grid;gap:10px;margin:4px 0 12px}
-.lvl{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px;align-items:center}
+.lvl{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:8px;align-items:center}
 @media(max-width:520px){.lvl{grid-template-columns:minmax(0,1fr)}}
 .lvl b{font-size:14px}
 .tiles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}
@@ -66,7 +66,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .extitle{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
 .extitle strong{font-size:18px}
 .extitle .lv{font-size:13px;font-weight:800;color:#fff;border-radius:999px;padding:2px 10px;margin-right:6px}
-.lv1{background:var(--ok)}.lv2{background:var(--warn)}.lv3{background:var(--acc)}
+.lv1{background:var(--ok)}.lv2{background:var(--warn)}.lv3{background:var(--acc)}.lv4{background:#7a5af5}.lv5{background:#1b1c20}
 .sheet{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px 6px;overflow-x:auto}
 .sheet svg{width:100%;height:auto;display:block;margin:0 auto}
 .sl{stroke:var(--ink);stroke-width:1.2;opacity:.75}
@@ -431,7 +431,7 @@ const VOICES={
   hoch:{name:'Hoch',desc:'Helle Stimme, z. B. Sopran',clef:'treble',lo:28,hi:37,base:28,col:'var(--hoch)'},
   mittel:{name:'Mittel',desc:'Mittlere Stimme, z. B. Alt',clef:'treble',lo:25,hi:35,base:28,col:'var(--mittel)'},
   tief:{name:'Tief',desc:'Dunkle Stimme, z. B. im oder nach dem Stimmbruch',clef:'bass',lo:18,hi:28,base:21,col:'var(--tief)'}};
-const LV=['Einfach','Mittel','Anspruchsvoll'];
+const LV=['Einfach','Mittel','Anspruchsvoll','Schwer','Profi'];
 /* Melodie: Stufen relativ zum Grundton (0 = c' bzw. c), ":2" halbe, ":4" ganze Note */
 const MEL=[
  ['Ein Ton: c','0:4'],['Ein Ton: e','2:4'],['Ein Ton: g','4:4'],['Zwei Nachbarn','0 1:2'],['Einen Schritt abwärts','2 1:2'],
@@ -439,7 +439,11 @@ const MEL=[
  ['Alle meine Entchen (Anfang)','0 1 2 3 4:2 4:2'],['Hänschen klein (Anfang)','4 2 2:2 3 1 1:2'],['Terzen-Treppe','0 2 1 3 2 4:2'],['Dreiklang auf und ab','0 2 4:2 2 0:2'],['Tonleiter aufwärts','0 1 2 3 4 5 6 7:2'],
  ['Tonleiter abwärts','7 6 5 4 3 2 1 0:2'],['Kuckuck-Motiv','4 2 4 2 3 2 1 0:2'],['Quarte und zurück','0 3:2 2 1 0:2'],['Wellen','2 4 3 5 4 2:2'],['Absteigende Dreiergruppen','4 3 2:2 3 2 1:2'],
  ['Quintsprung','0 4:2 4 0:2'],['Sextsprung','0 5:2 4 2:2'],['Oktavsprung','0 7:2 6 5 4:2'],['Dreiklang-Sprünge','0 4 2 7:2 4 0:2'],['Hänschen klein (erste Zeile)','4 2 2:2 3 1 1:2 0 1 2 3 4 4 4:2'],
- ['Alle meine Entchen (weiter)','0 1 2 3 4:2 4:2 5 5 5 5 4:4'],['Sprünge abwärts','7 4 5 2 3 0:2'],['d-Moll-Melodie','1 3 5 3 1:2 0 1:2'],['Septime und Auflösung','0 6:2 7:2'],['Große Melodie','0 2 4 7 6 4 5 3 2 1 0:2']
+ ['Alle meine Entchen (weiter)','0 1 2 3 4:2 4:2 5 5 5 5 4:4'],['Sprünge abwärts','7 4 5 2 3 0:2'],['d-Moll-Melodie','1 3 5 3 1:2 0 1:2'],['Septime und Auflösung','0 6:2 7:2'],['Große Melodie','0 2 4 7 6 4 5 3 2 1 0:2'],
+ ['Quinte abwärts und zurück','7 4 5 3 4:2 0:2'],['Sextensprünge','0 5 4 2 7 5 4:2'],['Dreiklang durch die Oktave','0 2 4 7 4 2 0:2'],['d-Moll-Dreiklang','1 3 5 3 1 5 1:2'],['Terzketten abwärts','7 5 6 4 5 3 4 2 0:2'],
+ ['Halbe und Viertel','4:2 2 3 4:2 7:2 6 5 4:2'],['Quarten-Leiter','0 3 1 4 2 5 3 7:2'],['Septime aufwärts','1 7:2 6 5 4 3:2'],['e-Moll-Bogen','2 4 6 4 7 6 4 2:2'],['Auf und ab mit Sprüngen','0 4 2 5 3 7 6 4 0:2'],
+ ['Oktave hin und zurück','0 7 0 7 6 5 4 0:2'],['Gebrochene Akkorde','0 2 4 1 3 5 2 4 6 7:2'],['Septakkord','1 3 5 7 6 4 3 1:2'],['Weite Sprünge','7 0 6 1 5 2 4 3:2'],['Wellen mit Quinten','0 4 1 5 2 6 3 7 0:2'],
+ ['Lange Melodie','4 2 3 4 7:2 6 5 4 2 3 1 0:2'],['Moll und Dur','5 3 1 3 5 7 4 2 0:2'],['Sexten-Kette','0 5 1 6 2 7 4 0:2'],['Absteigende Septimen','7 1 6 0 5 3 4:2'],['Meisterstück','0 4 7 5 3 6 4 2 5 3 1 0:2']
 ].map(([t,s])=>({t,n:s.split(' ').map(x=>{const[a,b]=x.split(':');return{o:+a,d:+(b||1)}})}));
 /* Harmonie: g = Töne vom Klavier, t = Ton zum Singen, Name optional (sonst Intervallname) */
 const HAR=[
@@ -447,10 +451,13 @@ const HAR=[
  [[1],3],[[0],5],[[7],2],[[2],5],[[3],7],
  [[0,2],4,'C-Dur: Quinte dazusingen'],[[0,4],2,'C-Dur: Terz dazusingen'],[[2,4],0,'C-Dur: Grundton dazusingen'],[[3,5],7,'F-Dur: Quinte dazusingen'],[[5,7],3,'F-Dur: Grundton dazusingen'],
  [[1,5],3,'d-Moll: Terz dazusingen'],[[2,6],4,'e-Moll: Terz dazusingen'],[[0,2],5,'a-Moll: Grundton dazusingen'],[[1,6],4,'G-Dur: Grundton dazusingen'],[[0,5],3,'F-Dur: Grundton dazusingen'],
- [[1,4,6],3,'G7: Septime dazusingen'],[[0],6],[[1],7],[[0,4,7],2,'C-Dur: Terz in die Mitte singen'],[[3],6]
+ [[1,4,6],3,'G7: Septime dazusingen'],[[0],6],[[1],7],[[0,4,7],2,'C-Dur: Terz in die Mitte singen'],[[3],6],
+ [[2],3],[[7],6],[[6],3],[[7],0],[[5],0],[[0,4],7,'C-Dur: Grundton oben dazusingen'],[[2,7],4,'C-Dur (Sextakkord): Quinte g dazusingen'],[[3,7],5,'F-Dur: Terz a dazusingen'],[[1,3],5,'d-Moll: Quinte a dazusingen'],[[2,4],6,'e-Moll: Quinte h dazusingen'],
+ [[1,3],6,'h-vermindert (d f h): h dazusingen'],[[0,4],3,'Csus4: Quarte f dazusingen'],[[0,4],1,'Csus2: Sekunde d dazusingen'],[[0,2,4],6,'Cmaj7: große Septime h dazusingen'],[[1,3,5],7,'Dm7: Septime c dazusingen'],
+ [[3,4,6],1,'G7 (f g h): Quinte d dazusingen'],[[0,2,4],5,'Am7 (c e g a): Grundton a dazusingen'],[[2,4,6],7,'Cmaj7 (e g h + c): Grundton dazusingen'],[[0,3,5],1,'Dm7 (c f a + d): Grundton d dazusingen'],[[3,6],0,'Tritonus f–h: c dazusingen']
 ].map(([g,t,name])=>({g,t,name}));
 /* Auswendig: Takte mit | getrennt, Dauer in Vierteln (":2" Halbe, ":4" Ganze, ":.5" Achtel, ":1.5" punktierte Viertel, ":3" punktierte Halbe) */
-const MEM_LV=[['1 Ton',6],['1 Takt',8],['4 Takte',8],['8 Takte',8]];
+const MEM_LV=[['1 Ton',6],['1 Takt',8],['4 Takte',8],['8 Takte',8],['8 Takte+',10],['Lange Lieder',10]];
 const MEM=[
  ['Ton merken: c','0:4'],['Ton merken: g','4:4'],['Ton merken: e','2:4'],['Ton merken: c (hoch)','7:4'],['Ton merken: f','3:4'],['Ton merken: a','5:4'],
  ['Treppe aufwärts','0 1 2 3'],['Treppe abwärts','4 3 2 1'],['Dreiklang','0 2 4:2'],['Kuckuck','4 4 2:2'],['Kleiner Bogen','2 3 4 2'],['Sprung und Schritte','0 4 3 2'],['Nachbartöne','5 4 3 4'],['Hin und her','0 2 1 3'],
@@ -459,15 +466,39 @@ const MEM=[
  ['Alle meine Entchen','0 1 2 3|4:2 4:2|5 5 5 5|4:4|3 3 3 3|2:2 2:2|1 1 1 1|0:4'],['Hänschen klein','4 2 2:2|3 1 1:2|0 1 2 3|4 4 4:2|4 2 2:2|3 1 1:2|0 2 4 4|0:4'],
  ['Morgen kommt der Weihnachtsmann','0 0 4 4|5 5 4:2|3 3 2 2|1 1 0:2|4 4 3 3|2 2 1:2|4 4 3 3|2 2 1:2'],['Ode an die Freude','2 2 3 4|4 3 2 1|0 0 1 2|2:1.5 1:.5 1:2|2 2 3 4|4 3 2 1|0 0 1 2|1:1.5 0:.5 0:2'],
  ['Mary had a little lamb','2 1 0 1|2 2 2:2|1 1 1:2|2 4 4:2|2 1 0 1|2 2 2 2|1 1 2 1|0:4'],['Große Sprünge','0 2 4 7|6 4 5:2|3 5 4 2|1:4|0 2 4 7|6 4 5 3|2 4 1 2|0:4'],
- ['Ruf und Antwort','4 4 5 4|2:2 0:2|1 2 3 4|2:4|4 4 5 4|2:2 0:2|1 3 2 1|0:4'],['Weite Bögen','0:2 2:2|4:2 7:2|5 4 3 2|1:4|3:2 5:2|4 3 2 1|2 4 1 1|0:4']
+ ['Ruf und Antwort','4 4 5 4|2:2 0:2|1 2 3 4|2:4|4 4 5 4|2:2 0:2|1 3 2 1|0:4'],['Weite Bögen','0:2 2:2|4:2 7:2|5 4 3 2|1:4|3:2 5:2|4 3 2 1|2 4 1 1|0:4'],
+ ['Achtel-Treppe','0:.5 1:.5 2:.5 3:.5 4 4|5:.5 4:.5 3:.5 2:.5 1:2|2:.5 3:.5 4:.5 5:.5 6 6|7:4|7:.5 6:.5 5:.5 4:.5 3 3|2:.5 3:.5 4:.5 2:.5 1:2|0 2 4 2|0:4'],
+ ['Punktierte Melodie','2:1.5 3:.5 4 4|4:1.5 3:.5 2:2|1:1.5 2:.5 3 2|1:4|2:1.5 3:.5 4 5|4:1.5 3:.5 2:2|1 3 2 1|0:4'],
+ ['Hüpfende Terzen','0 2 1 3|2:.5 4:.5 3:.5 5:.5 4:2|5 3 4 2|3:.5 1:.5 2:.5 0:.5 1:2|0 2 1 3|2:.5 4:.5 3:.5 5:.5 4 7|6 4 5 3|1:2 0:2'],
+ ['Bruder Jakob (mit hohem Schluss)','0 1 2 0|0 1 2 0|2 3 4:2|2 3 4:2|4:.5 5:.5 4:.5 3:.5 2 0|4:.5 5:.5 4:.5 3:.5 2 0|0 4 0:2|0 4 0:2'],
+ ['Synkopen-Lied','0 2:2 0|4 5:2 4|3 2:2 1|0:4|2 4:2 2|5 4:2 3|2 1:2 2|0:4'],
+ ['Sprung-Achtel','0:.5 4:.5 2:.5 5:.5 4:2|3:.5 6:.5 5:.5 7:.5 6:2|5 3 4 2|1:4|7:.5 4:.5 5:.5 3:.5 4:2|2:.5 5:.5 3:.5 1:.5 2:2|1 3 2 1|0:4'],
+ ['Schaukel-Melodie','4:1.5 2:.5 4 2|5:1.5 4:.5 3:2|2:1.5 3:.5 4 5|4:4|7:1.5 6:.5 5 4|3:1.5 2:.5 1:2|2 4 3 1|0:4'],
+ ['Moll-Melodie','1 3 5 3|1:.5 2:.5 3:.5 4:.5 5:2|7 5 6 4|5:4|5 3 4 2|3:.5 2:.5 1:.5 0:.5 1:2|3 2 1 0|1:4'],
+ ['Treppen-Wettlauf','0:.5 1:.5 2:.5 3:.5 4:.5 5:.5 6:.5 7:.5|7:4|7:.5 6:.5 5:.5 4:.5 3:.5 2:.5 1:.5 0:.5|0:4|0:.5 2:.5 4:.5 7:.5 4:.5 2:.5 0:.5 2:.5|4:2 2:2|1:.5 3:.5 5:.5 3:.5 1:.5 2:.5 1:.5 0:.5|0:4'],
+ ['Großer Bogen','0 4 7:2|6:1.5 5:.5 4:2|5 3 6 4|2:4|3 5 7 5|6:1.5 4:.5 5 3|2:.5 3:.5 4:.5 2:.5 1 2|0:4'],
+ ['Alle meine Entchen (ganz)','0 1 2 3|4:2 4:2|5 5 5 5|4:4|5 5 5 5|4:4|3 3 3 3|2:2 2:2|1 1 1 1|0:4'],
+ ['Hänschen klein (ganz)','4 2 2:2|3 1 1:2|0 1 2 3|4 4 4:2|4 2 2:2|3 1 1:2|0 2 4 4|0:4|1 1 1 1|1 2 3:2|2 2 2 2|2 3 4:2|4 2 2:2|3 1 1:2|0 2 4 4|0:4'],
+ ['Morgen kommt der Weihnachtsmann (ganz)','0 0 4 4|5 5 4:2|3 3 2 2|1 1 0:2|4 4 3 3|2 2 1:2|4 4 3 3|2 2 1:2|0 0 4 4|5 5 4:2|3 3 2 2|1 1 0:2'],
+ ['Frühlingsmelodie','0 2 4 2|5 4 2:2|3 5 4 2|1:4|2 4 6 4|7 6 4:2|5 3 4 2|0:4|4 4 5 5|6 6 7:2|5 3 2 1|0:4'],
+ ['Abendlied','4:2 2:2|3 4 5:2|4 3 2 1|2:4|4:2 5:2|6 5 4:2|3 2 1 2|0:4|2 3 4 5|6:1.5 5:.5 4:2|3 2 1 1|0:4'],
+ ['Marsch','0 0 4 4|2:1.5 3:.5 4:2|5 5 4 4|3:1.5 2:.5 1:2|0 0 4 4|2:1.5 3:.5 4 7|6 5 4 3|2:4|1 2 3 1|2 3 4 2|5 4 3 1|0:4'],
+ ['Wellenreiter','0:.5 1:.5 2:.5 1:.5 0 2|4:.5 5:.5 4:.5 3:.5 2:2|3:.5 4:.5 5:.5 4:.5 3 5|7:4|6:.5 5:.5 4:.5 5:.5 6 4|5:.5 4:.5 3:.5 2:.5 1:2|2 4 3 5|4:4|7 5 6 4|5 3 4 2|1 3 2 1|0:4'],
+ ['Moll-Ballade','1 3 5:2|4 3 2:2|3 5 7 5|6:4|5 4 3 1|2 3 4:2|3 2 1 0|1:4|5:1.5 4:.5 3 1|2:1.5 3:.5 4:2|3 2 1 0|1:4'],
+ ['Echo-Lied','0 2 4:2|0 2 4:2|5 4 3 2|3:4|1 3 5:2|1 3 5:2|6 5 4 3|4:4|7 6 5 4|3 2 1:2|2:.5 3:.5 2:.5 1:.5 0 1|0:4'],
+ ['Großes Finale','0 4 7:2|6 4 5:2|3 6 5 3|4:4|2:.5 4:.5 6:.5 4:.5 7 6|5:1.5 4:.5 3:2|1 3 5 7|6:4|7 4 5 2|3:.5 2:.5 1:.5 2:.5 3 6|4:.5 3:.5 2:.5 1:.5 2 1|0:4']
 ].map(([t,s])=>({t,n:s.split('|').flatMap((bar,b)=>bar.trim().split(/\s+/).map(x=>{const[a,d]=x.split(':');return{o:+a,d:+(d||1),bar:b}}))}));
 /* Rhythmus: Takte mit | getrennt; q Viertel, h Halbe, w Ganze, r Viertelpause, ee zwei Achtel, e Achtel, dqe punktierte Viertel + Achtel */
 const RHY=['q q q q','h h','q q h','h q q','q r q r','q q q q|h h','q r q q|h h','h q r|q q h','q q h|q q h','q r h|q q q r',
  'ee q ee q','q ee q ee','ee ee q q','ee q q q|ee ee h','q ee q r|ee ee q q','ee ee ee q|h ee q','h ee ee|q r ee q','ee q ee ee|q q h','q q ee ee|ee q h','ee ee h|ee ee q r',
- 'dqe q q|dqe h','q dqe q|dqe h','e q e q q|h h','q e q e q|q q h','ee e q e q|dqe q r','dqe ee ee|e q e h','r ee q ee|dqe h','e q e e q e|dqe h','ee r ee q|e q e ee q','dqe e q e|ee e q e q'];
+ 'dqe q q|dqe h','q dqe q|dqe h','e q e q q|h h','q e q e q|q q h','ee e q e q|dqe q r','dqe ee ee|e q e h','r ee q ee|dqe h','e q e e q e|dqe h','ee r ee q|e q e ee q','dqe e q e|ee e q e q',
+ 'q er e q q|h hr','er e er e q q|er e q h','ssss q q q|ssss ssss h','q ssss q ssss|h q q','ee ssss ee q|ssss ee h','hr q q|er e ee h','dqe ssss q|er e dqe q','ssss ssss ee ee|q er e h','e q e ssss q|ssss er e h','er e ssss er e q|h ssss q',
+ 'ess q ess q|h h','sse q sse q|ess sse h','tri q tri q|tri tri h','q tri q ee|tri ee h','ess sse ssss q|tri er e h','e q e tri q|dqe ess q','tri ssss ess sse|q er e h','er e tri e q e|ssss tri h','dqe tri q|e q e ess sse','tri ess e q e|sse tri ssss q'];
 const RNAME=['Viertel','Halbe','Viertel und Halbe','Halbe und Viertel','Mit Viertelpausen','Zwei Takte','Pause im ersten Takt','Halbe, Pause, Halbe','Gleiche Takte','Pausen an neuen Stellen',
  'Achtelpaare','Achtel hinten','Achtel vorne','Achtel in zwei Takten','Achtel und Pause','Viele Achtel','Achtel nach der Halben','Achtel-Mix','Achtel am Ende','Achtel und Halbe',
- 'Punktierte Viertel','Punktierte in der Mitte','Synkope','Doppelte Synkope','Synkope und Punktierung','Punktiert und synkopiert','Auftakt-Pause','Synkopen-Kette','Pause zwischen Achteln','Profi-Rhythmus'];
+ 'Punktierte Viertel','Punktierte in der Mitte','Synkope','Doppelte Synkope','Synkope und Punktierung','Punktiert und synkopiert','Auftakt-Pause','Synkopen-Kette','Pause zwischen Achteln','Profi-Rhythmus',
+ 'Achtelpause','Achtel auf der Und','Sechzehntel','Sechzehntel im Wechsel','Achtel und Sechzehntel','Halbe Pause','Punktiert mit Sechzehnteln','Sechzehntel-Kette','Synkope mit Sechzehnteln','Pausen-Puzzle',
+ 'Achtel + zwei Sechzehntel','Zwei Sechzehntel + Achtel','Triolen','Triolen im Wechsel','Sechzehntel-Mix','Synkope und Triole','Alles gemischt','Triolen mit Pausen','Punktiert und Triole','Profi-Mix'];
 
 /* ================= Speicher / Profil ================= */
 let DB={profiles:[],current:null};
@@ -598,7 +629,7 @@ $$('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='mem'&&!b.closest('#
 $('#hHome').onclick=()=>show('home');$('#hProf').onclick=$('#homeProf').onclick=()=>{editing=true;show('start')};
 function renderHome(){$('#homeHi').textContent=`Hallo ${P.name}! Was möchtest du üben?`;
   const wf=P.weeks[ymd(monday())]||0;$('#homeSub').textContent=`Diese Woche ${wf} von 3 Flammen · ${streak()} ${streak()===1?'Tag':'Tage'} in Folge · Stimmlage ${P.voice?VOICES[P.voice].name:'noch offen'}`;
-  [['m','#homeM'],['h','#homeH'],['r','#homeR'],['a','#homeA']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 30 geschafft');$('#homeC').textContent=DB.custom.length?DB.custom.length+(DB.custom.length===1?' Melodie':' Melodien'):'Noch keine – jetzt anlegen'}
+  [['m','#homeM'],['h','#homeH'],['r','#homeR'],['a','#homeA']].forEach(([k,id])=>$(id).textContent=Object.keys(P.done[k]).length+' von 50 geschafft');$('#homeC').textContent=DB.custom.length?DB.custom.length+(DB.custom.length===1?' Melodie':' Melodien'):'Noch keine – jetzt anlegen'}
 
 /* ================= Start / Profil ================= */
 let fGender='',editing=false;
@@ -669,10 +700,10 @@ const KIND={a:{list:MEM,name:i=>MEM[i].t,levels:MEM_LV},m:{list:MEL,name:i=>MEL[
 function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),cur=P.cur[k],lv=KIND[k].levels||LV.map(l=>[l,10]),start=[];let acc=0;lv.forEach(([,n])=>{start.push(acc);acc+=n});
   el.innerHTML=lv.map(([l,cnt],L)=>`<div class="lvl"><b>${l}</b><div class="tiles">${Array.from({length:cnt},(_,j)=>{const i=start[L]+j;return `<button class="tile${P.done[k][i]?' done':''}" data-k="${k}" data-i="${i}" aria-current="${i===cur}" aria-label="Übung ${i+1}${P.done[k][i]?', geschafft':''}">${P.done[k][i]?'✓':i+1}</button>`}).join('')}</div></div>`).join('');
   el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>selectEx(k,+b.dataset.i));
-  let L=0;start.forEach((st,j)=>{if(cur>=st)L=j});const lc=lv.length>3?[1,2,3,3][L]:L+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[L][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`}
+  let L=0;start.forEach((st,j)=>{if(cur>=st)L=j});const lc=lv.length>5?[1,1,2,3,4,5][L]:L+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[L][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`}
 function selectEx(k,i){stopSession();P.cur[k]=i;save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();if(k==='a'){memListens=0;SES.lastMem=null;renderMem()}
   $('#'+k+'Msg')&&($('#'+k+'Msg').textContent='');resetTuner(k)}
-$('#aNext').onclick=()=>selectEx('a',(P.cur.a+1)%30);$('#mNext').onclick=()=>selectEx('m',(P.cur.m+1)%30);$('#hNext').onclick=()=>selectEx('h',(P.cur.h+1)%30);$('#rNext').onclick=()=>selectEx('r',(P.cur.r+1)%30);
+$('#aNext').onclick=()=>selectEx('a',(P.cur.a+1)%50);$('#mNext').onclick=()=>selectEx('m',(P.cur.m+1)%50);$('#hNext').onclick=()=>selectEx('h',(P.cur.h+1)%50);$('#rNext').onclick=()=>selectEx('r',(P.cur.r+1)%50);
 
 /* ================= Notensystem ================= */
 const TREBLE='M2,2 C8,2 9,-8 2,-9 C-6,-10 -10,-1 -7,6 C-4,13 10,13 12,4 C14,-6 6,-13 -1,-19 C-9,-26 -7,-47 1,-52 C7,-55 9,-45 4,-38 C-1,-31 -2,-20 0,-6 L4,22 C5,29 -3,31 -5,26';
@@ -939,50 +970,62 @@ $('#cAllShare').onclick=()=>shareLink('Melodien zum Üben',shareUrl(DB.custom),$
 $('#cAllCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('#cAllLink').value);toast('Link kopiert.')}catch(e){$('#cAllLink').select();toast('Link markiert – bitte kopieren.')}};
 
 /* ================= Rhythmus ================= */
-const R={events:[],bars:1,hl:-1,mode:'idle',taps:[],start:0,lat:0};
-function loadRhythm(){if(!P)return;const bars=RHY[P.cur.r].split('|');R.bars=bars.length;R.events=[];
-  bars.forEach((bar,b)=>{let p=0;bar.trim().split(/\s+/).forEach(tk=>{const add=(t,d,x={})=>{R.events.push({t,p,d,b,abs:b*8+p,...x});p+=d};
-    if(tk==='q')add('q',2);else if(tk==='h')add('h',4);else if(tk==='w')add('w',8);else if(tk==='r')add('r',2);
-    else if(tk==='ee'){add('e',1,{beam:1});add('e',1,{beam:2})}else if(tk==='e')add('e',1,{flag:1});else if(tk==='dqe'){add('dq',3);add('e',1,{flag:1})}})});
+const R={events:[],groups:[],bars:1,hl:-1,mode:'idle',taps:[],start:0,lat:0};
+/* Rhythmus in Schlägen (1 = Viertel): q h w r(Viertelpause) hr(Halbe Pause) er(Achtelpause) e ee dqe ssss ess sse tri */
+function loadRhythm(){if(!P)return;const bars=RHY[P.cur.r].split('|');R.bars=bars.length;R.events=[];R.groups=[];
+  bars.forEach((bar,b)=>{let p=0;const add=(t,d,x={})=>{R.events.push({t,p,d,b,abs:b*4+p,...x});p+=d;return R.events.length-1};
+    const grp=(list,sec=[],tri=false)=>{const ids=list.map(([t,d])=>add(t,d,{beamed:1}));R.groups.push({ids,sec:sec.map(([x,y])=>[ids[x],ids[y]]),tri})};
+    bar.trim().split(/\s+/).forEach(tk=>{switch(tk){
+      case 'q':add('q',1);break;case 'h':add('h',2);break;case 'w':add('w',4);break;case 'r':add('r',1);break;case 'hr':add('hr',2);break;case 'er':add('er',.5);break;
+      case 'e':add('e',.5,{flag:1});break;case 'ee':grp([['e',.5],['e',.5]]);break;case 'dqe':add('dq',1.5);add('e',.5,{flag:1});break;
+      case 'ssss':grp([['s',.25],['s',.25],['s',.25],['s',.25]],[[0,3]]);break;case 'ess':grp([['e',.5],['s',.25],['s',.25]],[[1,2]]);break;
+      case 'sse':grp([['s',.25],['s',.25],['e',.5]],[[0,1]]);break;case 'tri':grp([['e',1/3],['e',1/3],['e',1/3]],[],true);break}})});
   R.mode='idle';R.hl=-1;$('#rRes').hidden=true;renderRhythm()}
-function renderRhythm(){const u=30,X0=74,BW=8*u+18,W=X0+R.bars*BW+6,H=150,Y=82;let s='';const X=e=>X0+e.b*BW+e.p*u+14;
+const isRest=e=>e.t==='r'||e.t==='hr'||e.t==='er';
+function renderRhythm(){const fine=R.events.some(e=>e.d<0.4),u=fine?76:60,X0=74,BW=4*u+18,W=X0+R.bars*BW+6,H=150,Y=82;let s='';const X=e=>X0+e.b*BW+e.p*u+14;
   s+=`<line class="sl" x1="14" x2="${W-6}" y1="${Y}" y2="${Y}"/><text class="ts" x="44" y="${Y-6}" text-anchor="middle">4</text><text class="ts" x="44" y="${Y+21}" text-anchor="middle">4</text>`;
-  const eighths=R.events.some(e=>e.d%2);
+  const halves=R.events.some(e=>Math.abs(e.p%1-0.5)<0.01);
   for(let b=0;b<R.bars;b++){const bx=X0+(b+1)*BW-4;s+=`<line class="sl" x1="${bx}" x2="${bx}" y1="${Y-16}" y2="${Y+16}" style="stroke-width:${b===R.bars-1?3:1.4}"/>`;
-    for(let p=0;p<8;p++){const x=X0+b*BW+p*u+14;if(p%2===0)s+=`<text class="cnt" x="${x}" y="${H-8}" text-anchor="middle">${p/2+1}</text>`;else if(eighths)s+=`<text class="cnt" x="${x}" y="${H-8}" text-anchor="middle">+</text>`}}
+    for(let k=0;k<4;k++){const x=X0+b*BW+k*u+14;s+=`<text class="cnt" x="${x}" y="${H-8}" text-anchor="middle">${k+1}</text>`;if(halves)s+=`<text class="cnt" x="${x+u/2}" y="${H-8}" text-anchor="middle">+</text>`}}
   R.events.forEach((e,i)=>{const x=X(e);let cls=e.res?e.res.s:'';if(R.hl===i)cls='cur';let g='';
     if(e.t==='r')g=`<path class="s" d="M${x-3},${Y-20} L${x+5},${Y-10} L${x-2},${Y-1} L${x+6},${Y+9} C${x-1},${Y+5} ${x-5},${Y+11} ${x+1},${Y+17}" fill="none" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    else if(e.t==='hr')g=`<rect class="f" x="${x-8}" y="${Y-7}" width="16" height="7"/>`;
+    else if(e.t==='er')g=`<circle class="f" cx="${x-3}" cy="${Y-8}" r="3.2"/><path class="s" d="M${x-3},${Y-6} C${x+1},${Y-5} ${x+4},${Y-8} ${x+5},${Y-10} L${x},${Y+10}" fill="none" stroke-width="2.2"/>`;
     else{g+=`<ellipse cx="${x}" cy="${Y}" rx="7.8" ry="5.6" transform="rotate(-20 ${x} ${Y})" ${e.t==='h'||e.t==='w'?'class="open"':''}/>`;
       if(e.t!=='w')g+=`<line x1="${x+7}" x2="${x+7}" y1="${Y}" y2="${Y-40}" stroke-width="1.8"/>`;
       if(e.t==='dq')g+=`<circle class="f" cx="${x+15}" cy="${Y-2}" r="2.6"/>`;
-      if(e.flag)g+=`<path class="s" d="M${x+7},${Y-40} C${x+10},${Y-30} ${x+20},${Y-28} ${x+16},${Y-14}" fill="none" stroke-width="2.4"/>`;
-      if(e.beam===1)g+=`<path class="f" d="M${x+6},${Y-41} L${x+u+8},${Y-41} L${x+u+8},${Y-35} L${x+6},${Y-35}z"/>`}
-    if(e.res&&(e.res.s==='early'||e.res.s==='late'))g+=`<text class="tag f" x="${x}" y="${Y-50}" text-anchor="middle">${e.res.s==='early'?'←':'→'}</text>`;
+      if(e.flag)g+=`<path class="s" d="M${x+7},${Y-40} C${x+10},${Y-30} ${x+20},${Y-28} ${x+16},${Y-14}" fill="none" stroke-width="2.4"/>`}
+    if(e.res&&(e.res.s==='early'||e.res.s==='late'))g+=`<text class="tag f" x="${x}" y="${Y-56}" text-anchor="middle">${e.res.s==='early'?'←':'→'}</text>`;
     s+=`<g class="n ${cls}">${g}</g>`});
-  const svg=$('#rStaff');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.5)+'px';svg.innerHTML=s}
-const onsets=()=>R.events.filter(e=>e.t!=='r');
+  R.groups.forEach(gp=>{const xs=gp.ids.map(i=>X(R.events[i])+7),x1=xs[0],x2=xs[xs.length-1];let g=`<path class="f" d="M${x1-1},${Y-41} L${x2+1},${Y-41} L${x2+1},${Y-35} L${x1-1},${Y-35}z"/>`;
+    gp.sec.forEach(([a,z])=>{const p1=X(R.events[a])+7,p2=X(R.events[z])+7;g+=`<path class="f" d="M${p1-1},${Y-32} L${p2+1},${Y-32} L${p2+1},${Y-27} L${p1-1},${Y-27}z"/>`});
+    if(gp.tri)g+=`<text class="cnt" x="${(x1+x2)/2}" y="${Y-46}" text-anchor="middle" style="font-size:14px;font-weight:800;fill:var(--ink)">3</text>`;
+    s+=`<g class="n">${g}</g>`});
+  const svg=$('#rStaff');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.5)+'px';svg.style.minWidth='';svg.innerHTML=s}
+const onsets=()=>R.events.filter(e=>!isRest(e));
 const PADTXT='Hier klopfen<small>Tippen oder Leertaste – nach dem Einzählen „1 2 3 4“</small>';
-function runRhythm(student){if(R.mode!=='idle')return;const c=ac(),beat=60/P.bpm,e8=beat/2,t0=c.currentTime+0.25,start=t0+4*beat,total=R.bars*8*e8,pad=$('#pad');
+function runRhythm(student){if(R.mode!=='idle')return;const c=ac(),beat=60/P.bpm,t0=c.currentTime+0.25,start=t0+4*beat,total=R.bars*4*beat,pad=$('#pad');
   R.events.forEach(e=>delete e.res);R.hl=-1;renderRhythm();$('#rRes').hidden=true;
   for(let i=0;i<4;i++){click(t0+i*beat,i===0);setTimeout(()=>{pad.innerHTML=`<span class="cd">${i+1}</span><small>einzählen …</small>`},(t0+i*beat-c.currentTime)*1000)}
   if(P.metro)for(let k=0;k<R.bars*4;k++)click(start+k*beat,k%4===0,student?0.45:0.25);
   R.mode=student?'rec':'play';
-  if(!student)R.events.forEach((e,i)=>{if(e.t!=='r')wood(start+e.abs*e8);setTimeout(()=>{R.hl=i;renderRhythm()},(start+e.abs*e8-c.currentTime)*1000)});
+  if(!student)R.events.forEach((e,i)=>{if(!isRest(e))wood(start+e.abs*beat);setTimeout(()=>{R.hl=i;renderRhythm()},(start+e.abs*beat-c.currentTime)*1000)});
   setTimeout(()=>{pad.classList.toggle('rec',student);pad.innerHTML=student?'Jetzt klopfen!<small>Tippen oder Leertaste</small>':'Hör genau zu …<small>Danach: „Ich bin dran“</small>'},(start-c.currentTime)*1000);
   if(student){R.taps=[];R.start=start;R.lat=c.outputLatency||c.baseLatency||0}
   setTimeout(()=>{const was=R.mode;R.mode='idle';R.hl=-1;pad.classList.remove('rec');pad.innerHTML=PADTXT;if(was==='rec')evaluate();else renderRhythm()},(start+total+beat*0.6-c.currentTime)*1000)}
 function tap(){const pad=$('#pad');pad.classList.add('flash');setTimeout(()=>pad.classList.remove('flash'),90);if(R.mode==='rec')R.taps.push(ac().currentTime-R.lat-R.start)}
-function evaluate(){const e8=30/P.bpm,win=Math.min(0.22,e8*0.6),used=new Set(),os=onsets(),match={};let ok=0,ea=0,la=0,mi=0;
-  os.forEach(e=>{const T=e.abs*e8;let best=-1,bd=0;R.taps.forEach((t,i)=>{if(used.has(i))return;const d=t-T;if(Math.abs(d)<=win&&(best<0||Math.abs(d)<Math.abs(bd))){best=i;bd=d}});
-    if(best<0){e.res={s:'miss'};mi++;return}used.add(best);const a=Math.abs(bd);e.res={s:a<=0.07?'ok':bd<0?'early':'late'};match[best]=e.res.s;
+function evaluate(){const beat=60/P.bpm,os=onsets(),used=new Set(),match={};let ok=0,ea=0,la=0,mi=0,gap=4;
+  for(let i=1;i<os.length;i++)gap=Math.min(gap,os[i].abs-os[i-1].abs);const minGap=gap*beat,win=Math.min(0.22,Math.max(0.06,minGap*0.6)),okTol=Math.min(0.07,minGap*0.4);
+  os.forEach(e=>{const T=e.abs*beat;let best=-1,bd=0;R.taps.forEach((t,i)=>{if(used.has(i))return;const d=t-T;if(Math.abs(d)<=win&&(best<0||Math.abs(d)<Math.abs(bd))){best=i;bd=d}});
+    if(best<0){e.res={s:'miss'};mi++;return}used.add(best);const a=Math.abs(bd);e.res={s:a<=okTol?'ok':bd<0?'early':'late'};match[best]=e.res.s;
     if(e.res.s==='ok')ok++;else if(bd<0)ea++;else la++});
   const extra=R.taps.length-used.size,n=os.length,score=Math.max(0,Math.round(((ok+0.5*(ea+la))/n-extra*0.05)*100));
   renderRhythm();$('#rRes').hidden=false;
   const parts=[`${ok} genau`];if(ea)parts.push(`${ea} zu früh`);if(la)parts.push(`${la} zu spät`);if(mi)parts.push(`${mi} verpasst`);if(extra)parts.push(`${extra} zusätzlich geklopft`);
   const pass=score>=80;$('#rMsg').textContent=`${score>=90?'Klasse!':pass?'Gut gemacht!':'Noch nicht ganz – ab 80 % zählt die Übung. Hör nochmal genau hin.'} ${score} % · ${parts.join(', ')}`;
-  const total=R.bars*8*e8,W=600,x=t=>20+(t/total)*(W-40);let s=`<line x1="20" x2="${W-20}" y1="35" y2="35" stroke="var(--line)" stroke-width="2"/>`;
-  for(let k=0;k<=R.bars*4;k++)s+=`<line x1="${x(k*2*e8)}" x2="${x(k*2*e8)}" y1="${k%4?29:22}" y2="${k%4?41:48}" stroke="var(--line)" stroke-width="${k%4?1:2}"/>`;
-  os.forEach(e=>{s+=`<circle cx="${x(e.abs*e8)}" cy="35" r="7" fill="none" stroke="var(--mut)" stroke-width="2"/>`});
+  const total=R.bars*4*beat,W=600,x=t=>20+(t/total)*(W-40);let s=`<line x1="20" x2="${W-20}" y1="35" y2="35" stroke="var(--line)" stroke-width="2"/>`;
+  for(let k=0;k<=R.bars*4;k++)s+=`<line x1="${x(k*beat)}" x2="${x(k*beat)}" y1="${k%4?29:22}" y2="${k%4?41:48}" stroke="var(--line)" stroke-width="${k%4?1:2}"/>`;
+  os.forEach(e=>{s+=`<circle cx="${x(e.abs*beat)}" cy="35" r="${gap<0.4?4:7}" fill="none" stroke="var(--mut)" stroke-width="2"/>`});
   R.taps.forEach((t,i)=>{if(t<-0.3||t>total+0.3)return;const col=!used.has(i)?'var(--acc)':match[i]==='ok'?'var(--ok)':'var(--warn)';s+=`<line x1="${x(t)}" x2="${x(t)}" y1="18" y2="52" stroke="${col}" stroke-width="3" stroke-linecap="round"/>`});
   $('#tline').innerHTML=s;if(pass)award('r',P.cur.r)}
 $('#rPlay').onclick=()=>runRhythm(false);$('#rGo').onclick=()=>runRhythm(true);
@@ -1004,7 +1047,7 @@ function renderWin(){const st=streak(),wk=ymd(monday()),wf=P.weeks[wk]||0,run=we
   const mo=monday(),names=['Mo','Di','Mi','Do','Fr','Sa','So'],today=ymd(new Date());
   $('#wDays').innerHTML=names.map((n,i)=>{const d=new Date(mo);d.setDate(mo.getDate()+i);const k2=ymd(d),on=!!P.days[k2];return `<div>${n}<i class="${on?'on':''}${k2===today?' today':''}">${on?'✓':''}</i></div>`}).join('');
   $('#wDaysT').textContent=`Ein Tag zählt, sobald du mindestens eine Übung schaffst. Aktuell ${st} ${st===1?'Tag':'Tage'} in Folge, dein Rekord: ${Math.max(P.best,st)}.`;
-  $('#wProg').innerHTML=[['Melodie','m'],['Harmonie','h'],['Auswendig','a'],['Rhythmus','r']].map(([l,k3])=>{const n=Object.keys(P.done[k3]).length;return `<div>${l}: ${n} von 30<div class="meter"><i style="width:${n/30*100}%"></i></div></div>`}).join('');
+  $('#wProg').innerHTML=[['Melodie','m'],['Harmonie','h'],['Auswendig','a'],['Rhythmus','r']].map(([l,k3])=>{const n=Object.keys(P.done[k3]).length;return `<div>${l}: ${n} von 50<div class="meter"><i style="width:${n/50*100}%"></i></div></div>`}).join('');
   $('#wProf').textContent=`${P.name} · ${P.age>=18?'18+':P.age} Jahre · ${P.gender==='w'?'Mädchen':P.gender==='m'?'Junge':'keine Angabe'} · Stimmlage ${P.voice?VOICES[P.voice].name:'offen'}`;
   $('#wDel').textContent='Profil löschen';$('#wDel').dataset.sure=''}
 $('#wSwitch').onclick=()=>{editing=true;show('start')};
