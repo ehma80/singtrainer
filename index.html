@@ -61,6 +61,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .lvl b{font-size:14px}
 .tiles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}
 .tile{position:relative;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;min-height:40px;font:800 14px Nunito,sans-serif;cursor:pointer;padding:0}
+.pall{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px}
+.pall-t{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:15px}.pall-t span{color:var(--mut);font-weight:700}
+.meter.big{height:14px;margin-top:8px}
+.lvchips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+.lvchip{flex:none;scroll-snap-align:start;display:grid;gap:4px;min-width:118px;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:8px 10px;font:800 14px Nunito,sans-serif;cursor:pointer}
+.lvchip span{display:flex;align-items:center;gap:4px;white-space:nowrap}.lvchip small{color:var(--mut);font-weight:700}
+.lvchip i{display:block;height:6px;border-radius:6px;background:var(--line);overflow:hidden}.lvchip i b{display:block;height:100%;background:var(--ok)}
+.lvchip.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}.lvchip:disabled{opacity:.5;cursor:default}
+.tile:disabled{opacity:.45;cursor:default;display:grid;place-items:center}
+.tile.next{border-color:var(--acc);border-style:dashed}
 .tile.done{background:var(--oks);border-color:var(--ok);color:var(--ok)}
 .tile[aria-current=true]{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
 .extitle{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
@@ -240,6 +250,11 @@ textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;b
       <div class="row"><button class="btn primary" type="submit" id="fSubmit">Weiter zur Stimmlage</button><button class="btn ghost" type="button" id="fCancel" hidden>Abbrechen</button><button class="btn ghost" type="button" id="fSound">Ton testen</button></div>
       <p style="color:var(--mut);font-size:14px;margin:0">Alter und Geschlecht helfen nur bei der Empfehlung für deine Stimmlage. Alles bleibt auf diesem Gerät.</p>
     </form>
+  </div>
+  <div class="panel" id="teachPanel" hidden>
+    <h2>Für Lehrkräfte</h2>
+    <label class="chk"><input type="checkbox" id="pUnlock">Alle Übungen freischalten (z. B. zum Vorführen)</label>
+    <p class="lead" style="margin:4px 0 0;font-size:14px">Normalerweise wird die nächste Übung erst frei, wenn die vorige geschafft ist.</p>
   </div>
   <div class="panel" id="dangerPanel" hidden>
     <h2>Profil zurücksetzen oder löschen</h2>
@@ -639,11 +654,12 @@ function renderStart(){const has=DB.profiles.length>0,ed=editing&&P;
   $('#formTitle').textContent=ed?'Dein Profil bearbeiten':has?'Oder ein neues Profil anlegen':'Erzähl uns kurz etwas über dich';
   $('#fSubmit').textContent=ed?'Speichern':'Weiter zur Stimmlage';
   if(ed){$('#fName').value=P.name;$('#fAge').value=String(P.age);setGender(P.gender)}else{$('#fName').value='';$('#fAge').value='';setGender('')}
-  $('#dangerPanel').hidden=!ed;dangerClose();$('#v-start .hero').hidden=!!ed;$('#whoT').hidden=!!ed;const fp=$('#formPanel'),pl=$('#profList');if(ed)pl.before(fp);else fp.before(pl);fp.parentNode.insertBefore(pl,ed?fp.nextSibling:fp);
+  $('#dangerPanel').hidden=!ed;$('#teachPanel').hidden=!ed;if(ed)$('#pUnlock').checked=!!P.unlockAll;dangerClose();$('#v-start .hero').hidden=!!ed;$('#whoT').hidden=!!ed;const fp=$('#formPanel'),pl=$('#profList');if(ed)pl.before(fp);else fp.before(pl);fp.parentNode.insertBefore(pl,ed?fp.nextSibling:fp);
   $('#plist').innerHTML=DB.profiles.map(p=>`<div class="prof"><div><b>${esc(p.name)}</b><br><span>${p.age>=18?'18+':esc(p.age)} Jahre · ${p.voice?VOICES[p.voice].name:'Stimmlage offen'} · ${p.flames} Flammen</span></div><button class="btn small primary" data-pid="${esc(p.id)}">${editing&&P?(p.id===P.id?'Aktiv':'Wechseln'):"Los geht's"}</button></div>`).join('');
   $$('[data-pid]').forEach(b=>b.onclick=()=>{useProfile(b.dataset.pid);header();show(P.voice?'home':'voice')})}
 $$('#fGender button').forEach(b=>b.onclick=()=>setGender(b.dataset.g));
 $('#fCancel').onclick=()=>show('home');
+$('#pUnlock').onchange=e=>{if(!P)return;P.unlockAll=e.target.checked;save();toast(P.unlockAll?'Alle Übungen sind frei.':'Übungen werden wieder der Reihe nach freigeschaltet.')};
 let dangerAct=null;
 function dangerClose(){dangerAct=null;$('#dangerAsk').hidden=true;$('#dangerBtns').hidden=false}
 function dangerOpen(act){dangerAct=act;$('#dangerBtns').hidden=true;$('#dangerAsk').hidden=false;
@@ -697,13 +713,29 @@ $$('#hMode button').forEach(b=>b.onclick=()=>{P.hMode=b.dataset.m;save();syncSet
 
 /* ================= Übungsauswahl ================= */
 const KIND={a:{list:MEM,name:i=>MEM[i].t,levels:MEM_LV},m:{list:MEL,name:i=>MEL[i].t},h:{list:HAR,name:i=>HAR[i].name||ivName(HAR[i].g[0],HAR[i].t)},r:{list:RHY,name:i=>RNAME[i]}};
-function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),cur=P.cur[k],lv=KIND[k].levels||LV.map(l=>[l,10]),start=[];let acc=0;lv.forEach(([,n])=>{start.push(acc);acc+=n});
-  el.innerHTML=lv.map(([l,cnt],L)=>`<div class="lvl"><b>${l}</b><div class="tiles">${Array.from({length:cnt},(_,j)=>{const i=start[L]+j;return `<button class="tile${P.done[k][i]?' done':''}" data-k="${k}" data-i="${i}" aria-current="${i===cur}" aria-label="Übung ${i+1}${P.done[k][i]?', geschafft':''}">${P.done[k][i]?'✓':i+1}</button>`}).join('')}</div></div>`).join('');
+const LOCK='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
+const pickL={};
+const lvInfo=k=>{const lv=KIND[k].levels||LV.map(l=>[l,10]),start=[];let acc=0;lv.forEach(([,n])=>{start.push(acc);acc+=n});return{lv,start,total:acc}};
+const isOpen=(k,i)=>!!(P.unlockAll||i===0||P.done[k][i-1]||P.done[k][i]);
+function frontier(k){const t=lvInfo(k).total;for(let i=0;i<t;i++)if(!P.done[k][i])return i;return t-1}
+function levelOf(k,i){const{start}=lvInfo(k);let L=0;start.forEach((st,j)=>{if(i>=st)L=j});return L}
+function renderPicker(k){if(!P)return;const el=$('#'+k+'Pick'),{lv,start,total}=lvInfo(k);
+  if(!isOpen(k,P.cur[k])){P.cur[k]=frontier(k);save()}const cur=P.cur[k],curL=levelOf(k,cur);if(pickL[k]==null)pickL[k]=curL;const PL=pickL[k];
+  const doneN=Object.keys(P.done[k]).filter(i=>+i<total).length,fr=frontier(k),all=doneN>=total;
+  const chips=lv.map(([l,cnt],L)=>{const open=isOpen(k,start[L]);let d=0;for(let j=0;j<cnt;j++)if(P.done[k][start[L]+j])d++;
+    return `<button class="lvchip${L===PL?' on':''}" data-l="${L}"${open?'':' disabled'} aria-pressed="${L===PL}"><span>${open?'':LOCK} ${l}</span><i><b style="width:${d/cnt*100}%"></b></i><small>${d}/${cnt}</small></button>`}).join('');
+  const tiles=Array.from({length:lv[PL][1]},(_,j)=>{const i=start[PL]+j,open=isOpen(k,i),dn=P.done[k][i];
+    return `<button class="tile${dn?' done':''}${i===fr&&!dn?' next':''}" data-i="${i}"${open?'':' disabled'} aria-current="${i===cur}" aria-label="Übung ${i+1}${dn?', geschafft':open?'':', gesperrt'}">${dn?'✓':open?i+1:LOCK}</button>`}).join('');
+  el.innerHTML=`<div class="pall"><div class="pall-t"><b>${doneN} von ${total} geschafft</b><span>${all?'Alles geschafft – stark!':`Als Nächstes: Übung ${fr+1}`}</span></div><div class="meter big"><i style="width:${doneN/total*100}%"></i></div></div>
+    <div class="lvchips">${chips}</div><div class="tiles">${tiles}</div>`;
   el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>selectEx(k,+b.dataset.i));
-  let L=0;start.forEach((st,j)=>{if(cur>=st)L=j});const lc=lv.length>5?[1,1,2,3,4,5][L]:L+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[L][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`}
-function selectEx(k,i){stopSession();P.cur[k]=i;save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();if(k==='a'){memListens=0;SES.lastMem=null;renderMem()}
+  el.querySelectorAll('.lvchip').forEach(b=>b.onclick=()=>{pickL[k]=+b.dataset.l;renderPicker(k)});
+  const lc=lv.length>5?[1,1,2,3,4,5][curL]:curL+1;$('#'+k+'Title').innerHTML=`<span><span class="lv lv${lc}">${lv[curL][0]}</span><strong>Übung ${cur+1}: ${esc(KIND[k].name(cur))}</strong></span>${P.done[k][cur]?`<span style="color:var(--ok);font-weight:800">✓ ${P.done[k][cur]}× geschafft</span>`:''}`;
+  const nb=$('#'+k+'Next');if(nb){const last=cur>=total-1,canGo=!last&&isOpen(k,cur+1);nb.disabled=!canGo;nb.classList.toggle('go',canGo&&!!P.done[k][cur]);nb.classList.toggle('ghost',!(canGo&&P.done[k][cur]));
+    nb.textContent=last?'Letzte Übung':canGo?'Nächste Übung →':'Erst diese Übung schaffen'}}
+function selectEx(k,i){if(!isOpen(k,i))return;stopSession();P.cur[k]=i;pickL[k]=levelOf(k,i);save();renderPicker(k);if(k==='m')renderMel();if(k==='h')renderHar();if(k==='r')loadRhythm();if(k==='a'){memListens=0;SES.lastMem=null;renderMem()}
   $('#'+k+'Msg')&&($('#'+k+'Msg').textContent='');resetTuner(k)}
-$('#aNext').onclick=()=>selectEx('a',(P.cur.a+1)%50);$('#mNext').onclick=()=>selectEx('m',(P.cur.m+1)%50);$('#hNext').onclick=()=>selectEx('h',(P.cur.h+1)%50);$('#rNext').onclick=()=>selectEx('r',(P.cur.r+1)%50);
+$('#aNext').onclick=()=>selectEx('a',P.cur.a+1);$('#mNext').onclick=()=>selectEx('m',P.cur.m+1);$('#hNext').onclick=()=>selectEx('h',P.cur.h+1);$('#rNext').onclick=()=>selectEx('r',P.cur.r+1);
 
 /* ================= Notensystem ================= */
 const TREBLE='M2,2 C8,2 9,-8 2,-9 C-6,-10 -10,-1 -7,6 C-4,13 10,13 12,4 C14,-6 6,-13 -1,-19 C-9,-26 -7,-47 1,-52 C7,-55 9,-45 4,-38 C-1,-31 -2,-20 0,-6 L4,22 C5,29 -3,31 -5,26';
