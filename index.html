@@ -139,6 +139,10 @@ select,input[type=text]{font:600 16px Nunito,sans-serif;padding:10px 12px;border
 @media(max-width:520px){.sub{grid-template-columns:minmax(0,1fr)}}
 .sub .btn{justify-content:center}
 .back{margin:12px 0 -6px}
+.view.singing .picker,.view.singing>.lead,.view.singing .extitle span .lv,.view.singing .actions,.view.singing #aCount{display:none}
+.view.singing .sheet{scroll-margin-top:10px}
+@media(max-width:600px){.tuner{gap:6px;padding:12px}.gauge{max-width:250px}.big{font-size:40px}.hint{font-size:17px;min-height:2.4em;margin-top:2px}.tuner .row .btn{min-height:42px}
+  .actions{margin-top:10px}.actions .btn{padding:10px 14px}}
 textarea{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);width:100%;resize:vertical;line-height:1.5}
 .help{background:var(--bg);border-radius:12px;padding:10px 14px;font-size:15px}.help summary{font-weight:800;cursor:pointer;min-height:32px}.help ul{margin:6px 0 0;padding-left:18px}.help li{margin:4px 0}
 .ferr{color:var(--acc);font-weight:800;margin:0}
@@ -473,9 +477,9 @@ const HAR=[
  [[3,4,6],1,'G7 (f g h): Quinte d dazusingen'],[[0,2,4],5,'Am7 (c e g a): Grundton a dazusingen'],[[2,4,6],7,'Cmaj7 (e g h + c): Grundton dazusingen'],[[0,3,5],1,'Dm7 (c f a + d): Grundton d dazusingen'],[[3,6],0,'Tritonus f–h: c dazusingen']
 ].map(([g,t,name])=>({g,t,name}));
 /* Auswendig: Takte mit | getrennt, Dauer in Vierteln (":2" Halbe, ":4" Ganze, ":.5" Achtel, ":1.5" punktierte Viertel, ":3" punktierte Halbe) */
-const MEM_LV=[['1 Ton',6],['1 Takt',8],['4 Takte',8],['8 Takte',8],['8 Takte+',10],['Lange Lieder',10]];
+const MEM_LV=[['1–2 Töne',6],['1 Takt',8],['4 Takte',8],['8 Takte',8],['8 Takte+',10],['Lange Lieder',10]];
 const MEM=[
- ['Ton merken: c','0:4'],['Ton merken: g','4:4'],['Ton merken: e','2:4'],['Ton merken: c (hoch)','7:4'],['Ton merken: f','3:4'],['Ton merken: a','5:4'],
+ ['Ton merken: g','4:4'],['Ton merken: d','1:4'],['Zwei Töne: c – e (Terz)','0:2 2:2'],['Zwei Töne: g – c (Quarte)','4:2 7:2'],['Zwei Töne: a – d (Quinte abwärts)','5:2 1:2'],['Zwei Töne: e – h (Quinte)','2:2 6:2'],
  ['Treppe aufwärts','0 1 2 3'],['Treppe abwärts','4 3 2 1'],['Dreiklang','0 2 4:2'],['Kuckuck','4 4 2:2'],['Kleiner Bogen','2 3 4 2'],['Sprung und Schritte','0 4 3 2'],['Nachbartöne','5 4 3 4'],['Hin und her','0 2 1 3'],
  ['Alle meine Entchen (Anfang)','0 1 2 3|4:2 4:2|5 5 5 5|4:4'],['Hänschen klein (Anfang)','4 2 2:2|3 1 1:2|0 1 2 3|4 4 4:2'],['Dreiklang-Melodie','0 2 4 2|0 2 4:2|3 2 1 2|0:4'],['Wellen abwärts','4 3 2 1|0 1 2:2|4 3 2 1|2 1 0:2'],
  ['Bruder Jakob (Anfang)','0 1 2 0|0 1 2 0|2 3 4:2|2 3 4:2'],['Ode an die Freude (Anfang)','2 2 3 4|4 3 2 1|0 0 1 2|2:1.5 1:.5 1:2'],['Morgen kommt der Weihnachtsmann (Anfang)','0 0 4 4|5 5 4:2|3 3 2 2|1 1 0:2'],['Bogen-Melodie','4 5 4 3|2 3 4:2|1 2 3:2|2 3 4:2'],
@@ -761,7 +765,7 @@ function noteSVG(x,dn,bottom,yB,dur,cls,dx=0,acc=0){const y=d=>yB-(d-bottom)*6,y
   if(dur<0.5)g+=up?`<path class="s" d="M${X+7},${yy-30} C${X+10},${yy-20} ${X+20},${yy-18} ${X+16},${yy-4}" fill="none" stroke-width="2.4"/>`:`<path class="s" d="M${X-7},${yy+30} C${X-4},${yy+20} ${X+6},${yy+18} ${X+2},${yy+4}" fill="none" stroke-width="2.4"/>`;
   if(dur<1)g+=up?`<path class="s" d="M${X+7},${yy-38} C${X+10},${yy-28} ${X+20},${yy-26} ${X+16},${yy-12}" fill="none" stroke-width="2.4"/>`:`<path class="s" d="M${X-7},${yy+38} C${X-4},${yy+28} ${X+6},${yy+26} ${X+2},${yy+12}" fill="none" stroke-width="2.4"/>`;
   return `<g class="n ${cls}">${g}</g>`}
-function fitSvg(svg,W,H){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.6)+'px';svg.style.minWidth=W>480?Math.round(W*0.68)+'px':''}
+function fitSvg(svg,W,H){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxHeight='170px';svg.style.maxWidth=Math.round(W*1.6)+'px';svg.style.minWidth=W>480?Math.round(W*0.68)+'px':''}
 
 /* ================= Melodie ================= */
 let mHL=-1;
@@ -868,7 +872,7 @@ function drawSheet(svg,notes,beats,clef,o={}){const bottom=clef==='bass'?18:30,b
     const yy=yB-(n.dn-bottom)*6,up=n.dn<bottom+4;
     if(n.tied)s+=`<path class="tie" d="M${x-26},${yy+(up?8:-8)} Q${x-15},${yy+(up?16:-16)} ${x-5},${yy+(up?8:-8)}"/>`;
     s+=noteSVG(x,n.dn,bottom,yB,n.d,o.hl===i?'cur':cls,0,n.tied?0:n.acc);if(o.names&&!n.tied)s+=`<text class="nl" x="${x}" y="${yB+44}" text-anchor="middle" style="font-size:13px">${esc(n.label)}</text>`});
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.5)+'px';svg.style.minWidth='';svg.innerHTML=s}
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth=Math.round(W*1.5)+'px';svg.style.maxHeight=Math.round(systems*135+10)+'px';svg.style.minWidth='';svg.innerHTML=s}
 /* Abspielen mit Haltebögen */
 function playNotes(notes,onHL,beat){const c=ac(),t0=c.currentTime+0.1;let t=0;
   notes.forEach((n,i)=>{if(!n.rest&&!n.tied){let d=n.d;for(let j=i+1;j<notes.length&&notes[j].tied;j++)d+=notes[j].d;tone(n.m,t0+t*beat,d*beat*0.92)}setTimeout(()=>onHL(i),(0.1+t*beat)*1000);t+=n.d});
@@ -894,8 +898,8 @@ function renderMem(){if(!P||!P.voice||VIEW!=='mem')return;const v=V(),mm=memMel(
   const cust=!!MEMSRC;$('#aPick').hidden=cust;$('#aNext').hidden=cust;$('#v-mem .back').textContent=cust?'← Eigene Melodien':'← Menü';
   if(cust){const d=P.done.c[MEMSRC];$('#aTitle').innerHTML=`<span><span class="lv lv2">Eigene Melodie</span><strong>${esc(mm.title)}</strong></span>${d?`<span style="color:var(--ok);font-weight:800">✓ ${d}× geschafft</span>`:''}`}}
 $('#aPlay').onclick=()=>{SES.lastMem=null;memListens++;playNotes(curMem(),i=>{aHL=i;renderMem()},60/P.bpm);renderMem()};
-$('#aSing').onclick=async()=>{if(!P.voice)return show('voice');if(!await startMic())return;stopSession();SES.lastMem=null;memCD=3;renderMem();$('#aSing').disabled=true;$('#aMsg').textContent='';
-  const tick=()=>{if(VIEW!=='mem'){memCD=0;$('#aSing').disabled=false;return}memCD--;if(memCD>0){renderMem();setTimeout(tick,1000)}else{renderMem();startSession('mem')}};setTimeout(tick,1000)};
+$('#aSing').onclick=async()=>{if(!P.voice)return show('voice');if(!await startMic())return;stopSession();SES.lastMem=null;memCD=3;focusSing('mem',true);renderMem();$('#aSing').disabled=true;$('#aMsg').textContent='';
+  const tick=()=>{if(VIEW!=='mem'){memCD=0;$('#aSing').disabled=false;focusSing('mem',false);return}memCD--;if(memCD>0){renderMem();setTimeout(tick,1000)}else{renderMem();startSession('mem')}};setTimeout(tick,1000)};
 $('#aSingVis').onclick=()=>{SES.lastMem=null;$('#aMsg').textContent='';startSession('mem',{vis:true})};
 window.addEventListener('resize',()=>{if(VIEW==='mem')renderMem()});
 
@@ -928,9 +932,10 @@ async function startSession(kind,opt={}){if(!P.voice)return show('voice');if(!aw
   if(kind==='har'){const e=curHar(),t=ac().currentTime+0.05;
     if(P.drone){SES.drone=e.g.map(dn=>P.sound==='voice'?voice(dnMidi(dn),t,120,0.18):organ(dnMidi(dn),t,120));SES.pause=performance.now()+700}
     else{e.g.forEach(dn=>tone(dnMidi(dn),t,1.5,0.26));SES.pause=performance.now()+2000}}
-  $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;if(kind==='mem')$('#aSingVis').disabled=true;RENDER[kind]();startLoop(sesTick)}
+  $('#'+p+'Msg').textContent='';$('#'+p+'Stop').hidden=false;$('#'+p+'Sing').disabled=true;if(kind==='mem')$('#aSingVis').disabled=true;focusSing(kind,true);RENDER[kind]();startLoop(sesTick)}
+function focusSing(kind,on){const v=$('#v-'+kind);if(!v)return;v.classList.toggle('singing',on);if(on){const sh=v.querySelector('.sheet');requestAnimationFrame(()=>sh.scrollIntoView({behavior:'smooth',block:'start'}))}}
 function stopSession(){if(!SES.kind)return;const p=pre(SES.kind);if(SES.drone){SES.drone.forEach(d=>d.stop());SES.drone=null}
-  $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();RENDER[k]()}
+  $('#'+p+'Stop').hidden=true;$('#'+p+'Skip').hidden=true;$('#'+p+'Sing').disabled=false;const k=SES.kind;SES.kind=null;stopLoop();focusSing(k,false);RENDER[k]()}
 function sesTick(now){if(now-lastTick<25)return;const dt=Math.min(100,now-lastTick);lastTick=now;const m=readPitch(),p=pre(SES.kind);
   if(now<SES.pause){gauge(p,m,null);const h=$('#'+p+'Hint');h.textContent='Hör zu …';h.className='hint';return}
   const target=SES.targets[SES.idx];let c=null;
